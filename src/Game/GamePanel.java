@@ -2,15 +2,18 @@
 package Game;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 import java.util.ArrayList;
+import java.util.List;
 
 import Algorithms.BFS;
 import Algorithms.DFS;
+import Algorithms.AStar;
 import Entities.Player;
 import Maze.Maze;
 import Maze.MazeGenerator;
@@ -46,6 +49,7 @@ public class GamePanel extends JPanel {
     private Image idleImage;
     private Image walkingLeft;
     private Image walkingRight;
+    private Image smileImage;
 
     private Image completeLogo;
 
@@ -74,6 +78,17 @@ public class GamePanel extends JPanel {
     private int mazeSize;
 
     private boolean won = false;
+
+    // ==========================================
+    // ALGORITHM COMPARISON
+    // ==========================================
+
+    private SwingWorker<List<AlgorithmComparisonView.ComparisonData>, Void>
+        comparisonWorker;
+
+    private AlgorithmComparisonView comparisonView;
+
+    private JPanel centerPanel;
 
     // ==========================================
     // MANUAL PLAY STATISTICS
@@ -118,7 +133,7 @@ public class GamePanel extends JPanel {
     private boolean solverPaused = false;
 
     // ==========================================
-    // LIVE QUEUE / STACK DATA
+    // LIVE QUEUE / STACK / PRIORITY QUEUE DATA
     // ==========================================
 
     private ArrayList<ArrayList<Point>> frontierSnapshots = new ArrayList<>();
@@ -186,7 +201,8 @@ public class GamePanel extends JPanel {
         walkingLeft = loadImage("/Assets/Walking_Left.png");
         walkingRight = loadImage("/Assets/Walking_Right.png");
 
-        // LOAD VICTORY LOGO
+        smileImage = loadImage("/Assets/Smile.png");
+
         completeLogo = loadImage("/Assets/COMPLETE.png");
 
         player = idleImage;
@@ -210,6 +226,8 @@ public class GamePanel extends JPanel {
 
         setupControls();
         setupKeyboardListener();
+
+        updateAnimationSpeed();
     }
 
     // ==========================================
@@ -252,6 +270,17 @@ public class GamePanel extends JPanel {
         backButton = createButton("BACK", 85, 38);
 
         backButton.addActionListener(e -> {
+
+            if (comparisonWorker != null
+                    && !comparisonWorker.isDone()) {
+                return;
+            }
+
+            if (comparisonView != null
+                    && comparisonView.isRunning()) {
+                return;
+            }
+
             stopTimers();
             onBack.run();
         });
@@ -324,13 +353,20 @@ public class GamePanel extends JPanel {
             updateAnimationSpeed();
         });
 
-        autoStartButton = createButton("AUTO START", 105, 38);
+        autoStartButton = createButton("AUTO START", 115, 38);
 
         autoStartButton.addActionListener(e -> {
 
             if ("Manual Play".equals(selectedMode)) {
+
                 handleManualButton();
+
+            } else if ("Algorithm Comparison".equals(selectedMode)) {
+
+                runAlgorithmComparison();
+
             } else {
+
                 handleSolverButton();
             }
         });
@@ -406,7 +442,7 @@ public class GamePanel extends JPanel {
 
     private void updateAnimationSpeed() {
 
-        if (algorithmTimer == null || speedSelector == null) {
+        if (speedSelector == null) {
             return;
         }
 
@@ -423,8 +459,16 @@ public class GamePanel extends JPanel {
             delay = 35;
         }
 
-        algorithmTimer.setDelay(delay);
-        algorithmTimer.setInitialDelay(delay);
+        if (algorithmTimer != null) {
+            algorithmTimer.setDelay(delay);
+            algorithmTimer.setInitialDelay(delay);
+        }
+
+        // Apply the same speed to all three comparison mazes.
+
+        if (comparisonView != null) {
+            comparisonView.setAnimationDelay(delay);
+        }
     }
 
     // ==========================================
@@ -433,7 +477,7 @@ public class GamePanel extends JPanel {
 
     private void createMazeArea() {
 
-        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel = new JPanel(new BorderLayout());
 
         centerPanel.setBackground(DARK_GREEN);
 
@@ -443,9 +487,48 @@ public class GamePanel extends JPanel {
 
         mazeCanvas = new MazeCanvas();
 
+        comparisonView = new AlgorithmComparisonView();
+
         centerPanel.add(mazeCanvas, BorderLayout.CENTER);
 
         add(centerPanel, BorderLayout.CENTER);
+    }
+
+    // ==========================================
+    // SWITCH BETWEEN NORMAL AND COMPARISON VIEW
+    // ==========================================
+
+    private void showComparisonView(boolean show) {
+
+        centerPanel.removeAll();
+
+        if (show) {
+
+            centerPanel.add(
+                comparisonView,
+                BorderLayout.CENTER
+            );
+
+        } else {
+
+            centerPanel.add(
+                mazeCanvas,
+                BorderLayout.CENTER
+            );
+        }
+
+        // Hide the regular statistics panel in comparison mode.
+        // The comparison view has its own results table.
+
+        if (statisticsPanel != null) {
+            statisticsPanel.setVisible(!show);
+        }
+
+        centerPanel.revalidate();
+        centerPanel.repaint();
+
+        revalidate();
+        repaint();
     }
 
     // ==========================================
@@ -477,8 +560,6 @@ public class GamePanel extends JPanel {
         );
 
         statusPanel.add(statusLabel, BorderLayout.NORTH);
-
-        // LIVE SOLVER PROGRESS BAR
 
         solverProgressBar = new JProgressBar(0, 100);
 
@@ -512,7 +593,7 @@ public class GamePanel extends JPanel {
         cardsPanel.add(createStatCard("PATH LENGTH", pathValue));
         cardsPanel.add(createStatCard("EXECUTION TIME", timeValue));
 
-        // QUEUE / STACK PANEL
+        // FRONTIER PANEL
 
         JPanel frontierPanel = new JPanel(new BorderLayout(5, 5));
 
@@ -717,7 +798,7 @@ public class GamePanel extends JPanel {
     }
 
     // ==========================================
-    // UPDATE QUEUE / STACK DISPLAY
+    // UPDATE QUEUE / STACK / PRIORITY QUEUE
     // ==========================================
 
     private void updateFrontierDisplay(int index) {
@@ -735,9 +816,16 @@ public class GamePanel extends JPanel {
         StringBuilder display = new StringBuilder();
 
         if ("BFS Solver".equals(selectedMode)) {
+
             display.append("FRONT -> ");
-        } else {
+
+        } else if ("DFS Solver".equals(selectedMode)) {
+
             display.append("TOP -> ");
+
+        } else if ("A* Solver".equals(selectedMode)) {
+
+            display.append("LOWEST F -> ");
         }
 
         if (snapshot.isEmpty()) {
@@ -835,6 +923,37 @@ public class GamePanel extends JPanel {
                 );
 
                 explanation.append("LIFO: Last In, First Out.");
+            }
+
+        } else if ("A* Solver".equals(selectedMode)) {
+
+            if (visitedIndex > 0 && visitedIndex <= visitedCells.size()) {
+
+                Point current = visitedCells.get(visitedIndex - 1);
+
+                explanation.append("A* is exploring cell (")
+                    .append(current.x + 1)
+                    .append(", ")
+                    .append(current.y + 1)
+                    .append(").\n\n");
+
+                explanation.append(
+                    "A* selects the cell with the lowest estimated total cost.\n\n"
+                );
+
+                explanation.append("f(n) = g(n) + h(n)\n\n");
+
+                explanation.append(
+                    "g(n): Cost from the start.\n"
+                );
+
+                explanation.append(
+                    "h(n): Manhattan distance to the exit.\n\n"
+                );
+
+                explanation.append(
+                    "The Priority Queue organizes cells according to their f-score."
+                );
             }
         }
 
@@ -936,9 +1055,16 @@ public class GamePanel extends JPanel {
         } else {
 
             if ("BFS Solver".equals(selectedMode)) {
+
                 runBFS();
+
             } else if ("DFS Solver".equals(selectedMode)) {
+
                 runDFS();
+
+            } else if ("A* Solver".equals(selectedMode)) {
+
+                runAStar();
             }
         }
     }
@@ -1072,6 +1198,11 @@ public class GamePanel extends JPanel {
 
     private void changeMaze() {
 
+        if (comparisonWorker != null
+                && !comparisonWorker.isDone()) {
+            return;
+        }
+
         stopTimers();
 
         solverPaused = false;
@@ -1083,8 +1214,19 @@ public class GamePanel extends JPanel {
 
         maze = MazeGenerator.generateMaze(mazeSize, mazeSize);
 
-        // INITIALIZE PLAYER OBJECT
         playerEntity = new Player(maze);
+
+        boolean isComparison =
+            "Algorithm Comparison".equals(selectedMode);
+
+        comparisonView.setMaze(maze);
+
+        showComparisonView(isComparison);
+
+        // Ensure the regular statistics panel is visible
+        // for all modes except Algorithm Comparison.
+
+        statisticsPanel.setVisible(!isComparison);
 
         facingLeft = false;
         player = idleImage;
@@ -1097,7 +1239,7 @@ public class GamePanel extends JPanel {
         visitedIndex = 0;
         pathIndex = 0;
 
-        // RESET QUEUE / STACK
+        // RESET FRONTIER
 
         frontierSnapshots.clear();
 
@@ -1146,7 +1288,7 @@ public class GamePanel extends JPanel {
         solverProgressBar.setString("0%");
         solverProgressBar.setForeground(VISITED_BLUE);
 
-        // RESET SPEED TO NORMAL
+        // RESET SPEED
 
         speedSelector.setSelectedItem("NORMAL");
 
@@ -1154,20 +1296,30 @@ public class GamePanel extends JPanel {
 
         boolean isSolver =
             "BFS Solver".equals(selectedMode) ||
-            "DFS Solver".equals(selectedMode);
+            "DFS Solver".equals(selectedMode) ||
+            "A* Solver".equals(selectedMode);
 
         boolean isManual = "Manual Play".equals(selectedMode);
 
-        autoStartButton.setVisible(isSolver || isManual);
+        autoStartButton.setVisible(
+            isSolver || isManual || isComparison
+        );
 
         if (isManual) {
+
             autoStartButton.setText("PAUSE");
+
+        } else if (isComparison) {
+
+            autoStartButton.setText("RUN COMPARISON");
+
         } else {
+
             autoStartButton.setText("AUTO START");
         }
 
-        speedSelector.setVisible(isSolver);
-        speedLabel.setVisible(isSolver);
+        speedSelector.setVisible(isSolver || isComparison);
+        speedLabel.setVisible(isSolver || isComparison);
 
         solverProgressBar.setVisible(isSolver);
 
@@ -1175,7 +1327,15 @@ public class GamePanel extends JPanel {
             selectedMode + "  |  " + mazeSize + " x " + mazeSize
         );
 
+        // Reset control states.
+
+        autoStartButton.setEnabled(true);
+        changeMazeButton.setEnabled(true);
+        backButton.setEnabled(true);
+
         mazeCanvas.repaint();
+        comparisonView.repaint();
+
         revalidate();
 
         SwingUtilities.invokeLater(() -> requestFocusInWindow());
@@ -1199,7 +1359,9 @@ public class GamePanel extends JPanel {
             manualStatsTimer.stop();
         }
 
-        // CLOSE VICTORY POPUP IF IT IS OPEN
+        if (comparisonView != null) {
+            comparisonView.stopAnimations();
+        }
 
         if (victoryTimer != null) {
             victoryTimer.stop();
@@ -1216,7 +1378,9 @@ public class GamePanel extends JPanel {
         leftPressed = false;
         rightPressed = false;
 
-        player = idleImage;
+        if (!won) {
+            player = idleImage;
+        }
     }
 
     // ==========================================
@@ -1228,7 +1392,8 @@ public class GamePanel extends JPanel {
         movementTimer = new Timer(130, e -> {
 
             if (maze == null || playerEntity == null
-                    || won || manualPaused) {
+                    || won || manualPaused
+                    || "Algorithm Comparison".equals(selectedMode)) {
                 return;
             }
 
@@ -1337,7 +1502,8 @@ public class GamePanel extends JPanel {
                 public void actionPerformed(java.awt.event.ActionEvent e) {
 
                     if (maze == null || playerEntity == null
-                            || won || manualPaused) {
+                            || won || manualPaused
+                            || "Algorithm Comparison".equals(selectedMode)) {
                         return;
                     }
 
@@ -1398,7 +1564,9 @@ public class GamePanel extends JPanel {
 
                         movementTimer.stop();
 
-                        player = idleImage;
+                        if (!won) {
+                            player = idleImage;
+                        }
 
                         mazeCanvas.repaint();
                     }
@@ -1414,11 +1582,11 @@ public class GamePanel extends JPanel {
     private void movePlayer(int rowChange, int colChange) {
 
         if (maze == null || playerEntity == null
-                || won || manualPaused) {
+                || won || manualPaused
+                || "Algorithm Comparison".equals(selectedMode)) {
             return;
         }
 
-        // USE PLAYER CLASS FOR MOVEMENT
         boolean moved = playerEntity.move(
             maze,
             rowChange,
@@ -1427,7 +1595,6 @@ public class GamePanel extends JPanel {
 
         if (moved) {
 
-            // PLAYER MOVEMENT SOUND
             SoundManager.playMove();
 
             if ("Manual Play".equals(selectedMode)
@@ -1436,7 +1603,6 @@ public class GamePanel extends JPanel {
 
                 manualStarted = true;
                 manualStartTime = System.nanoTime();
-
                 manualStatsTimer.start();
             }
 
@@ -1462,29 +1628,35 @@ public class GamePanel extends JPanel {
                 );
             }
 
-            if (colChange < 0) {
+            if (playerEntity.hasReachedExit(maze)) {
 
-                facingLeft = true;
-                player = walkingLeft;
+                upPressed = false;
+                downPressed = false;
+                leftPressed = false;
+                rightPressed = false;
 
-            } else if (colChange > 0) {
+                winGame();
 
-                facingLeft = false;
-                player = walkingRight;
+                mazeCanvas.repaint();
+                return;
+            }
 
-            } else {
+            if (!won) {
 
-                player = idleImage;
+                if (colChange < 0) {
+                    facingLeft = true;
+                    player = walkingLeft;
+
+                } else if (colChange > 0) {
+                    facingLeft = false;
+                    player = walkingRight;
+
+                } else {
+                    player = idleImage;
+                }
             }
 
             mazeCanvas.repaint();
-
-            // CHECK IF PLAYER REACHED THE EXIT
-            if (playerEntity.hasReachedExit(maze)) {
-
-                stopTimers();
-                winGame();
-            }
         }
     }
 
@@ -1518,15 +1690,12 @@ public class GamePanel extends JPanel {
         visitedCells = result.getVisitedOrder();
         solutionPath = result.getPath();
 
-        // LOAD BFS QUEUE SNAPSHOTS
-
         frontierSnapshots = result.getQueueSnapshots();
 
         frontierTitleLabel.setText("BFS QUEUE (FIFO)");
         frontierTextArea.setText("Queue is ready...");
         frontierSizeLabel.setText("Size: 0");
 
-        // RESET PLAYER USING PLAYER CLASS
         playerEntity.reset(maze);
 
         player = idleImage;
@@ -1570,15 +1739,12 @@ public class GamePanel extends JPanel {
         visitedCells = result.getVisitedOrder();
         solutionPath = result.getPath();
 
-        // LOAD DFS STACK SNAPSHOTS
-
         frontierSnapshots = result.getStackSnapshots();
 
         frontierTitleLabel.setText("DFS STACK (LIFO)");
         frontierTextArea.setText("Stack is ready...");
         frontierSizeLabel.setText("Size: 0");
 
-        // RESET PLAYER USING PLAYER CLASS
         playerEntity.reset(maze);
 
         player = idleImage;
@@ -1590,6 +1756,296 @@ public class GamePanel extends JPanel {
         updateStatistics();
 
         startSolverAnimation();
+    }
+
+    // ==========================================
+    // RUN A*
+    // ==========================================
+
+    private void runAStar() {
+
+        if (!"A* Solver".equals(selectedMode) || maze == null
+                || playerEntity == null) {
+            return;
+        }
+
+        stopTimers();
+
+        solverPaused = false;
+
+        autoStartButton.setText("PAUSE");
+
+        statusLabel.setText("A* is exploring the maze...");
+
+        long startTime = System.nanoTime();
+
+        AStar.SearchResult result = AStar.findPath(maze);
+
+        long endTime = System.nanoTime();
+
+        executionTime = (endTime - startTime) / 1_000_000.0;
+
+        visitedCells = result.getVisitedOrder();
+        solutionPath = result.getPath();
+
+        frontierSnapshots = result.getOpenListSnapshots();
+
+        frontierTitleLabel.setText("A* PRIORITY QUEUE (LOWEST F)");
+        frontierTextArea.setText("Priority Queue is ready...");
+        frontierSizeLabel.setText("Size: 0");
+
+        playerEntity.reset(maze);
+
+        player = idleImage;
+        facingLeft = false;
+
+        visitedIndex = 0;
+        pathIndex = 0;
+
+        updateStatistics();
+
+        startSolverAnimation();
+    }
+
+    // ==========================================
+    // ALGORITHM COMPARISON
+    // ==========================================
+
+    private void runAlgorithmComparison() {
+
+        if (!"Algorithm Comparison".equals(selectedMode)
+                || maze == null
+                || comparisonView == null
+                || (comparisonWorker != null && !comparisonWorker.isDone())
+                || comparisonView.isRunning()) {
+
+            return;
+        }
+
+        final Maze comparisonMaze = maze;
+
+        stopTimers();
+
+        autoStartButton.setEnabled(false);
+        changeMazeButton.setEnabled(false);
+        backButton.setEnabled(false);
+
+        autoStartButton.setText("COMPARING...");
+
+        statusLabel.setText(
+            "Preparing BFS, DFS, and A* on the same maze..."
+        );
+
+        explanationTextArea.setText(
+            "ALGORITHM COMPARISON\n\n"
+            + "BFS, DFS, and A* will solve the same maze.\n\n"
+            + "Each algorithm has its own maze animation.\n\n"
+            + "The results table will update while the algorithms run."
+        );
+
+        comparisonWorker =
+            new SwingWorker<List<AlgorithmComparisonView.ComparisonData>, Void>() {
+
+            @Override
+            protected List<AlgorithmComparisonView.ComparisonData>
+            doInBackground() {
+
+                ArrayList<AlgorithmComparisonView.ComparisonData> results =
+                    new ArrayList<>();
+
+                // WARM-UP RUNS
+
+                BFS.findPath(comparisonMaze, false);
+                DFS.findPath(comparisonMaze, false);
+                AStar.findPath(comparisonMaze, false);
+
+                // BFS
+
+                long bfsStart = System.nanoTime();
+
+                BFS.SearchResult bfsResult =
+                    BFS.findPath(comparisonMaze, false);
+
+                long bfsEnd = System.nanoTime();
+
+                double bfsTime =
+                    (bfsEnd - bfsStart) / 1_000_000.0;
+
+                results.add(
+                    new AlgorithmComparisonView.ComparisonData(
+                        "BFS",
+                        bfsTime,
+                        bfsResult.getVisitedOrder(),
+                        bfsResult.getPath()
+                    )
+                );
+
+                // DFS
+
+                long dfsStart = System.nanoTime();
+
+                DFS.SearchResult dfsResult =
+                    DFS.findPath(comparisonMaze, false);
+
+                long dfsEnd = System.nanoTime();
+
+                double dfsTime =
+                    (dfsEnd - dfsStart) / 1_000_000.0;
+
+                results.add(
+                    new AlgorithmComparisonView.ComparisonData(
+                        "DFS",
+                        dfsTime,
+                        dfsResult.getVisitedOrder(),
+                        dfsResult.getPath()
+                    )
+                );
+
+                // A*
+
+                long aStarStart = System.nanoTime();
+
+                AStar.SearchResult aStarResult =
+                    AStar.findPath(comparisonMaze, false);
+
+                long aStarEnd = System.nanoTime();
+
+                double aStarTime =
+                    (aStarEnd - aStarStart) / 1_000_000.0;
+
+                results.add(
+                    new AlgorithmComparisonView.ComparisonData(
+                        "A*",
+                        aStarTime,
+                        aStarResult.getVisitedOrder(),
+                        aStarResult.getPath()
+                    )
+                );
+
+                return results;
+            }
+
+            @Override
+            protected void done() {
+
+                try {
+
+                    List<AlgorithmComparisonView.ComparisonData> results =
+                        get();
+
+                    if (!isDisplayable()) {
+                        return;
+                    }
+
+                    statusLabel.setText(
+                        "BFS, DFS, and A* are now solving the maze!"
+                    );
+
+                    comparisonView.startComparison(
+                        results,
+                        () -> finishAlgorithmComparison(results)
+                    );
+
+                } catch (Exception ex) {
+
+                    ex.printStackTrace();
+
+                    JOptionPane.showMessageDialog(
+                        GamePanel.this,
+                        "Unable to complete algorithm comparison:\n"
+                        + ex.getMessage(),
+                        "Comparison Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+
+                    autoStartButton.setEnabled(true);
+                    changeMazeButton.setEnabled(true);
+                    backButton.setEnabled(true);
+
+                    autoStartButton.setText("RUN COMPARISON");
+
+                    statusLabel.setText(
+                        "Algorithm comparison encountered an error."
+                    );
+
+                } finally {
+
+                    comparisonWorker = null;
+                }
+            }
+        };
+
+        comparisonWorker.execute();
+    }
+
+    // ==========================================
+    // FINISH ALGORITHM COMPARISON
+    // ==========================================
+
+    private void finishAlgorithmComparison(
+        List<AlgorithmComparisonView.ComparisonData> results
+    ) {
+
+        if (results == null || results.isEmpty()) {
+            return;
+        }
+
+        AlgorithmComparisonView.ComparisonData fastest =
+            results.get(0);
+
+        for (AlgorithmComparisonView.ComparisonData result : results) {
+
+            if (result.executionTime < fastest.executionTime) {
+                fastest = result;
+            }
+        }
+
+        visitedValue.setText(
+            String.valueOf(fastest.visited.size())
+        );
+
+        pathValue.setText(
+            String.valueOf(
+                Math.max(0, fastest.path.size() - 1)
+            )
+        );
+
+        timeValue.setText(
+            String.format("%.4f ms", fastest.executionTime)
+        );
+
+        statusLabel.setText(
+            "Comparison completed! Fastest: "
+            + fastest.algorithm
+        );
+
+        frontierTitleLabel.setText("COMPARISON COMPLETED");
+        frontierSizeLabel.setText("3 Algorithms");
+
+        frontierTextArea.setText(
+            "BFS, DFS, and A* completed.\n\n"
+            + "Fastest algorithm: "
+            + fastest.algorithm
+            + "\n\nExecution time: "
+            + String.format("%.4f ms", fastest.executionTime)
+        );
+
+        explanationTextArea.setText(
+            "ALGORITHM COMPARISON COMPLETED\n\n"
+            + "All three algorithms solved the same maze.\n\n"
+            + "Fastest algorithm: "
+            + fastest.algorithm
+            + "\n\nExecution time: "
+            + String.format("%.4f ms", fastest.executionTime)
+            + "\n\nThe live results are displayed below "
+            + "the three maze panels."
+        );
+
+        autoStartButton.setEnabled(true);
+        changeMazeButton.setEnabled(true);
+        backButton.setEnabled(true);
+
+        autoStartButton.setText("RUN COMPARISON");
     }
 
     // ==========================================
@@ -1649,7 +2105,7 @@ public class GamePanel extends JPanel {
     }
 
     // ==========================================
-    // ANIMATE BFS / DFS
+    // ANIMATE BFS / DFS / A*
     // ==========================================
 
     private void animateSolver() {
@@ -1659,7 +2115,7 @@ public class GamePanel extends JPanel {
             return;
         }
 
-        // PHASE 1: VISITED CELLS - BLUE
+        // PHASE 1: VISITED CELLS
 
         if (visitedIndex < visitedCells.size()) {
 
@@ -1677,7 +2133,7 @@ public class GamePanel extends JPanel {
             );
         }
 
-        // PHASE 2: SOLUTION PATH - YELLOW
+        // PHASE 2: SOLUTION PATH
 
         else if (pathIndex < solutionPath.size()) {
 
@@ -1687,7 +2143,6 @@ public class GamePanel extends JPanel {
 
             int previousCol = playerEntity.getCol();
 
-            // MOVE PLAYER USING PLAYER CLASS
             boolean moved = playerEntity.moveTo(
                 maze,
                 current.x,
@@ -1696,7 +2151,6 @@ public class GamePanel extends JPanel {
 
             if (moved) {
 
-                // PLAYER MOVEMENT SOUND
                 SoundManager.playMove();
 
                 int currentCol = playerEntity.getCol();
@@ -1742,7 +2196,7 @@ public class GamePanel extends JPanel {
         solverProgressBar.setValue(progress);
         solverProgressBar.setString(progress + "%");
 
-        // PHASE 3: COMPLETION - GREEN
+        // PHASE 3: COMPLETION
 
         if (visitedIndex >= visitedCells.size()
                 && pathIndex >= solutionPath.size()) {
@@ -1767,10 +2221,6 @@ public class GamePanel extends JPanel {
             updateAlgorithmExplanation();
 
             mazeCanvas.repaint();
-
-            // SHOW VICTORY POPUP FOR BFS / DFS
-            // ONLY IF A VALID SOLUTION WAS FOUND
-            // AND THE PLAYER REACHED THE EXIT
 
             if (!solutionPath.isEmpty()
                     && playerEntity.hasReachedExit(maze)) {
@@ -1840,8 +2290,6 @@ public class GamePanel extends JPanel {
             int panelWidth = getWidth();
             int panelHeight = getHeight();
 
-            // CAPTURE CURRENT GAME PANEL
-
             BufferedImage screenshot = new BufferedImage(
                 panelWidth,
                 panelHeight,
@@ -1853,8 +2301,6 @@ public class GamePanel extends JPanel {
             printAll(screenshotGraphics);
 
             screenshotGraphics.dispose();
-
-            // BLUR THE CAPTURED BACKGROUND
 
             BufferedImage blurredBackground = blurImage(screenshot);
 
@@ -1884,8 +2330,6 @@ public class GamePanel extends JPanel {
                         RenderingHints.VALUE_ANTIALIAS_ON
                     );
 
-                    // BLURRED BACKGROUND
-
                     g2.drawImage(
                         blurredBackground,
                         0,
@@ -1894,8 +2338,6 @@ public class GamePanel extends JPanel {
                         getHeight(),
                         this
                     );
-
-                    // DARKEN BACKGROUND
 
                     g2.setColor(new Color(0, 0, 0, 115));
 
@@ -1906,8 +2348,6 @@ public class GamePanel extends JPanel {
                         getHeight()
                     );
 
-                    // ANIMATION PROGRESS
-
                     long elapsed = System.currentTimeMillis()
                         - victoryStartTime;
 
@@ -1915,8 +2355,6 @@ public class GamePanel extends JPanel {
                         1f,
                         elapsed / (float) VICTORY_ANIMATION_DURATION
                     );
-
-                    // SMOOTH POP-UP EFFECT
 
                     float eased = 1f - (float) Math.pow(1f - progress, 3);
 
@@ -1926,8 +2364,6 @@ public class GamePanel extends JPanel {
                     int originalHeight = completeLogo.getHeight(this);
 
                     if (originalWidth > 0 && originalHeight > 0) {
-
-                        // KEEP LOGO PROPORTIONS
 
                         int maxWidth = (int) (getWidth() * 0.65);
                         int maxHeight = (int) (getHeight() * 0.70);
@@ -1948,8 +2384,6 @@ public class GamePanel extends JPanel {
                         int logoX = (getWidth() - logoWidth) / 2;
                         int logoY = (getHeight() - logoHeight) / 2;
 
-                        // DRAW CENTERED LOGO
-
                         g2.drawImage(
                             completeLogo,
                             logoX,
@@ -1968,13 +2402,9 @@ public class GamePanel extends JPanel {
 
             victoryWindow.setContentPane(overlay);
 
-            // SET TIME BEFORE FIRST PAINT
-
             victoryStartTime = System.currentTimeMillis();
 
             victoryWindow.setVisible(true);
-
-            // UPDATE ANIMATION AND AUTO CLOSE
 
             victoryTimer = new Timer(16, e -> {
 
@@ -2014,7 +2444,12 @@ public class GamePanel extends JPanel {
 
     private void winGame() {
 
-        // PREVENT MULTIPLE VICTORY TRIGGERS
+        // Comparison mode uses its own completion table.
+        // Never show the normal victory popup for comparison.
+
+        if ("Algorithm Comparison".equals(selectedMode)) {
+            return;
+        }
 
         if (won) {
             return;
@@ -2022,7 +2457,6 @@ public class GamePanel extends JPanel {
 
         won = true;
 
-        // PLAY VICTORY SOUND
         SoundManager.playVictory();
 
         movementTimer.stop();
@@ -2048,15 +2482,19 @@ public class GamePanel extends JPanel {
 
         manualPaused = false;
 
-        player = idleImage;
+        if (smileImage != null) {
+            player = smileImage;
+        } else {
+            System.out.println("Smile.png could not be loaded!");
+            player = idleImage;
+        }
 
         statusLabel.setText(
             "Congratulations! Maze completed!"
         );
 
         mazeCanvas.repaint();
-
-        // SHOW CUSTOM VICTORY POPUP INSTEAD OF DIALOG
+        mazeCanvas.revalidate();
 
         showVictoryPopup();
     }
@@ -2252,7 +2690,7 @@ public class GamePanel extends JPanel {
                 );
             }
 
-            // PLAYER - POSITION FROM PLAYER CLASS
+            // PLAYER
 
             if (playerEntity != null) {
 
@@ -2262,10 +2700,15 @@ public class GamePanel extends JPanel {
                 int playerY =
                     startY + playerEntity.getRow() * tileSize;
 
-                if (player != null) {
+                Image currentPlayerImage =
+                    (won && smileImage != null)
+                    ? smileImage
+                    : player;
+
+                if (currentPlayerImage != null) {
 
                     g2.drawImage(
-                        player,
+                        currentPlayerImage,
                         playerX, playerY,
                         tileSize, tileSize,
                         this

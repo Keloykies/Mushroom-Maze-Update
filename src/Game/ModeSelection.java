@@ -10,8 +10,7 @@ public class ModeSelection extends JPanel {
     private Image background;
 
     private JButton manualButton;
-    private JButton bfsButton;
-    private JButton dfsButton;
+    private JButton algorithmButton;
     private JButton backButton;
 
     public ModeSelection(Runnable onBack, Consumer<String> onModeSelected) {
@@ -25,13 +24,11 @@ public class ModeSelection extends JPanel {
         ).getImage();
 
         manualButton = createButton("MANUAL PLAY");
-        bfsButton = createButton("BFS SOLVER");
-        dfsButton = createButton("DFS SOLVER");
+        algorithmButton = createButton("ALGORITHM SOLVER");
         backButton = createButton("BACK");
 
         add(manualButton);
-        add(bfsButton);
-        add(dfsButton);
+        add(algorithmButton);
         add(backButton);
 
         // Select Manual Play
@@ -39,14 +36,9 @@ public class ModeSelection extends JPanel {
             onModeSelected.accept("Manual Play");
         });
 
-        // Select BFS
-        bfsButton.addActionListener(e -> {
-            onModeSelected.accept("BFS Solver");
-        });
-
-        // Select DFS
-        dfsButton.addActionListener(e -> {
-            onModeSelected.accept("DFS Solver");
+        // Open Algorithm Solver selection
+        algorithmButton.addActionListener(e -> {
+            onModeSelected.accept("Algorithm Solver");
         });
 
         // Return to Main Menu
@@ -176,10 +168,7 @@ public class ModeSelection extends JPanel {
                 this
         );
 
-        // =====================================
-        // TITLE: SELECT GAME MODE
-        // =====================================
-
+        // TITLE
         Graphics2D titleGraphics =
                 (Graphics2D) g.create();
 
@@ -207,7 +196,6 @@ public class ModeSelection extends JPanel {
         int titleY =
                 panelHeight / 4;
 
-        // Dark green shadow behind the letters
         titleGraphics.setColor(
                 new Color(49, 91, 54)
         );
@@ -218,7 +206,6 @@ public class ModeSelection extends JPanel {
                 titleY + 2
         );
 
-        // Cream-colored title text
         titleGraphics.setColor(
                 new Color(255, 244, 210)
         );
@@ -231,18 +218,15 @@ public class ModeSelection extends JPanel {
 
         titleGraphics.dispose();
 
-        // =====================================
         // BUTTON POSITIONS
-        // =====================================
-
-        int buttonWidth = 280;
-        int buttonHeight = 55;
+        int buttonWidth = 300;
+        int buttonHeight = 60;
 
         int buttonX =
                 (panelWidth - buttonWidth) / 2;
 
         int startY =
-                panelHeight / 2 - 30;
+                panelHeight / 2 - 20;
 
         manualButton.setBounds(
                 buttonX,
@@ -251,16 +235,9 @@ public class ModeSelection extends JPanel {
                 buttonHeight
         );
 
-        bfsButton.setBounds(
+        algorithmButton.setBounds(
                 buttonX,
-                startY + 75,
-                buttonWidth,
-                buttonHeight
-        );
-
-        dfsButton.setBounds(
-                buttonX,
-                startY + 150,
+                startY + 90,
                 buttonWidth,
                 buttonHeight
         );
@@ -277,8 +254,7 @@ public class ModeSelection extends JPanel {
                 (Graphics2D) g.create();
 
         drawButton(g2, manualButton);
-        drawButton(g2, bfsButton);
-        drawButton(g2, dfsButton);
+        drawButton(g2, algorithmButton);
         drawButton(g2, backButton);
 
         g2.dispose();

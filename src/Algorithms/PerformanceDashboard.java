@@ -1,9 +1,9 @@
-
 package Algorithms;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
+
 import java.awt.*;
 import java.io.*;
 import java.util.*;
@@ -15,38 +15,87 @@ public class PerformanceDashboard extends JPanel {
     // THEME COLORS
     // ==========================================
 
-    private static final Color BACKGROUND = new Color(19, 29, 25);
-    private static final Color PANEL = new Color(29, 43, 36);
-    private static final Color CARD = new Color(38, 55, 45);
-    private static final Color GREEN = new Color(75, 145, 91);
-    private static final Color LIGHT_GREEN = new Color(164, 211, 153);
-    private static final Color TEXT = new Color(235, 242, 235);
-    private static final Color MUTED = new Color(164, 181, 168);
-    private static final Color BFS_COLOR = new Color(75, 155, 235);
-    private static final Color DFS_COLOR = new Color(235, 153, 76);
+    private static final Color BACKGROUND =
+        new Color(19, 29, 25);
+
+    private static final Color PANEL =
+        new Color(29, 43, 36);
+
+    private static final Color CARD =
+        new Color(38, 55, 45);
+
+    private static final Color GREEN =
+        new Color(75, 145, 91);
+
+    private static final Color LIGHT_GREEN =
+        new Color(164, 211, 153);
+
+    private static final Color TEXT =
+        new Color(235, 242, 235);
+
+    private static final Color MUTED =
+        new Color(164, 181, 168);
+
+    private static final Color BFS_COLOR =
+        new Color(75, 155, 235);
+
+    private static final Color DFS_COLOR =
+        new Color(235, 153, 76);
+
+    private static final Color ASTAR_COLOR =
+        new Color(174, 120, 230);
+
+    private static final Color[] ALGORITHM_COLORS = {
+        BFS_COLOR,
+        DFS_COLOR,
+        ASTAR_COLOR
+    };
+
+    private static final String[] ALGORITHMS = {
+        "BFS",
+        "DFS",
+        "A*"
+    };
 
     private static final String CSV_FILE =
         "MushroomMaze_Benchmark.csv";
 
-    // CSV column indexes
+    // ==========================================
+    // CSV COLUMN INDEXES
+    // ==========================================
+
     private static final int CSV_TIME = 2;
     private static final int CSV_VISITED = 3;
     private static final int CSV_MEMORY = 4;
 
-    // Graph data indexes
+    // ==========================================
+    // GRAPH DATA INDEXES
+    // ==========================================
+
+    // Execution time
     private static final int BFS_TIME = 0;
     private static final int DFS_TIME = 1;
-    private static final int BFS_MEMORY = 2;
-    private static final int DFS_MEMORY = 3;
-    private static final int BFS_VISITED = 4;
-    private static final int DFS_VISITED = 5;
+    private static final int ASTAR_TIME = 2;
+
+    // Memory allocation
+    private static final int BFS_MEMORY = 3;
+    private static final int DFS_MEMORY = 4;
+    private static final int ASTAR_MEMORY = 5;
+
+    // Visited cells
+    private static final int BFS_VISITED = 6;
+    private static final int DFS_VISITED = 7;
+    private static final int ASTAR_VISITED = 8;
 
     // ==========================================
     // DATA AND UI COMPONENTS
     // ==========================================
 
-    private final List<String[]> results = new ArrayList<>();
-    private final List<JButton> navigationButtons = new ArrayList<>();
+    private final List<String[]> results =
+        new ArrayList<>();
+
+    private final List<JButton> navigationButtons =
+        new ArrayList<>();
 
     private final Runnable onBack;
 
@@ -82,13 +131,20 @@ public class PerformanceDashboard extends JPanel {
         pageContainer.setBackground(BACKGROUND);
 
         navigationPanel = new JPanel();
+
         navigationPanel.setLayout(
-            new BoxLayout(navigationPanel, BoxLayout.Y_AXIS)
+            new BoxLayout(
+                navigationPanel,
+                BoxLayout.Y_AXIS
+            )
         );
+
         navigationPanel.setBackground(PANEL);
 
         add(createHeader(), BorderLayout.NORTH);
+
         buildPages();
+
         add(createDashboardBody(), BorderLayout.CENTER);
     }
 
@@ -99,6 +155,7 @@ public class PerformanceDashboard extends JPanel {
     private JPanel createDashboardBody() {
 
         JPanel body = new JPanel(new BorderLayout());
+
         body.setBackground(BACKGROUND);
 
         body.add(createSidebar(), BorderLayout.WEST);
@@ -115,32 +172,58 @@ public class PerformanceDashboard extends JPanel {
 
         JPanel sidebar = new JPanel(new BorderLayout());
 
-        sidebar.setPreferredSize(new Dimension(185, 0));
+        sidebar.setPreferredSize(
+            new Dimension(185, 0)
+        );
+
         sidebar.setBackground(PANEL);
 
         sidebar.setBorder(
             BorderFactory.createMatteBorder(
-                0, 0, 0, 1,
+                0,
+                0,
+                0,
+                1,
                 new Color(57, 78, 63)
             )
         );
 
         JPanel sidebarHeader = new JPanel();
+
         sidebarHeader.setLayout(
-            new BoxLayout(sidebarHeader, BoxLayout.Y_AXIS)
+            new BoxLayout(
+                sidebarHeader,
+                BoxLayout.Y_AXIS
+            )
         );
+
         sidebarHeader.setBackground(PANEL);
+
         sidebarHeader.setBorder(
-            BorderFactory.createEmptyBorder(18, 15, 15, 10)
+            BorderFactory.createEmptyBorder(
+                18,
+                15,
+                15,
+                10
+            )
         );
 
         JLabel heading = new JLabel("ANALYTICS");
-        heading.setForeground(LIGHT_GREEN);
-        heading.setFont(new Font("Arial", Font.BOLD, 12));
 
-        JLabel description = new JLabel("Dashboard sections");
+        heading.setForeground(LIGHT_GREEN);
+
+        heading.setFont(
+            new Font("Arial", Font.BOLD, 12)
+        );
+
+        JLabel description =
+            new JLabel("Dashboard sections");
+
         description.setForeground(MUTED);
-        description.setFont(new Font("Arial", Font.PLAIN, 10));
+
+        description.setFont(
+            new Font("Arial", Font.PLAIN, 10)
+        );
 
         sidebarHeader.add(heading);
         sidebarHeader.add(Box.createVerticalStrut(5));
@@ -148,16 +231,24 @@ public class PerformanceDashboard extends JPanel {
 
         sidebar.add(sidebarHeader, BorderLayout.NORTH);
 
-        JScrollPane navigationScroll = new JScrollPane(navigationPanel);
+        JScrollPane navigationScroll =
+            new JScrollPane(navigationPanel);
 
         navigationScroll.setBorder(null);
+
         navigationScroll.setHorizontalScrollBarPolicy(
             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
         );
-        navigationScroll.getViewport().setBackground(PANEL);
-        navigationScroll.getVerticalScrollBar().setUnitIncrement(15);
 
-        sidebar.add(navigationScroll, BorderLayout.CENTER);
+        navigationScroll.getViewport().setBackground(PANEL);
+
+        navigationScroll.getVerticalScrollBar()
+            .setUnitIncrement(15);
+
+        sidebar.add(
+            navigationScroll,
+            BorderLayout.CENTER
+        );
 
         return sidebar;
     }
@@ -169,13 +260,22 @@ public class PerformanceDashboard extends JPanel {
     private JPanel createContentArea() {
 
         JPanel content = new JPanel(new BorderLayout());
+
         content.setBackground(BACKGROUND);
 
         content.setBorder(
-            BorderFactory.createEmptyBorder(12, 15, 12, 15)
+            BorderFactory.createEmptyBorder(
+                12,
+                15,
+                12,
+                15
+            )
         );
 
-        content.add(pageContainer, BorderLayout.CENTER);
+        content.add(
+            pageContainer,
+            BorderLayout.CENTER
+        );
 
         return content;
     }
@@ -187,7 +287,9 @@ public class PerformanceDashboard extends JPanel {
     private void buildPages() {
 
         pageContainer.removeAll();
+
         navigationPanel.removeAll();
+
         navigationButtons.clear();
 
         addNavigationItem("OVERVIEW", "Overview");
@@ -195,14 +297,41 @@ public class PerformanceDashboard extends JPanel {
         addNavigationItem("EXECUTION", "Execution Time");
         addNavigationItem("MEMORY", "Memory Usage");
         addNavigationItem("COMPLEXITY", "Complexity");
-        addNavigationItem("BFS_DFS", "BFS vs DFS");
-        addNavigationItem("ALGORITHM", "Algorithm Comparison");
-        addNavigationItem("MEMORY_COMPARE", "Memory Comparison");
-        addNavigationItem("VISITED", "Visited Cells");
-        addNavigationItem("INSIGHTS", "Insights");
 
-        pageContainer.add(createOverviewPanel(), "OVERVIEW");
-        pageContainer.add(createResultsPanel(), "RESULTS");
+        addNavigationItem(
+            "BFS_DFS",
+            "Algorithm Summary"
+        );
+
+        addNavigationItem(
+            "ALGORITHM",
+            "Algorithm Comparison"
+        );
+
+        addNavigationItem(
+            "MEMORY_COMPARE",
+            "Memory Comparison"
+        );
+
+        addNavigationItem(
+            "VISITED",
+            "Visited Cells"
+        );
+
+        addNavigationItem(
+            "INSIGHTS",
+            "Insights"
+        );
+
+        pageContainer.add(
+            createOverviewPanel(),
+            "OVERVIEW"
+        );
+
+        pageContainer.add(
+            createResultsPanel(),
+            "RESULTS"
+        );
 
         pageContainer.add(
             createChartPanel(
@@ -224,12 +353,19 @@ public class PerformanceDashboard extends JPanel {
             "MEMORY"
         );
 
-        pageContainer.add(createAnalysisPanel(), "COMPLEXITY");
-        pageContainer.add(createComparisonPanel(), "BFS_DFS");
+        pageContainer.add(
+            createAnalysisPanel(),
+            "COMPLEXITY"
+        );
+
+        pageContainer.add(
+            createComparisonPanel(),
+            "BFS_DFS"
+        );
 
         pageContainer.add(
             createChartPanel(
-                "BFS vs DFS - Execution Time",
+                "BFS vs DFS vs A* - Execution Time",
                 "Execution Time (ms)",
                 CSV_TIME,
                 true
@@ -239,7 +375,7 @@ public class PerformanceDashboard extends JPanel {
 
         pageContainer.add(
             createChartPanel(
-                "BFS vs DFS - Memory Allocation",
+                "BFS vs DFS vs A* - Memory Allocation",
                 "Allocated Memory (KB)",
                 CSV_MEMORY,
                 true
@@ -249,7 +385,7 @@ public class PerformanceDashboard extends JPanel {
 
         pageContainer.add(
             createChartPanel(
-                "BFS vs DFS - Visited Cells",
+                "BFS vs DFS vs A* - Visited Cells",
                 "Number of Visited Cells",
                 CSV_VISITED,
                 true
@@ -257,51 +393,86 @@ public class PerformanceDashboard extends JPanel {
             "VISITED"
         );
 
-        pageContainer.add(createInsightsPanel(), "INSIGHTS");
+        pageContainer.add(
+            createInsightsPanel(),
+            "INSIGHTS"
+        );
 
-        navigationPanel.add(Box.createVerticalStrut(5));
+        navigationPanel.add(
+            Box.createVerticalStrut(5)
+        );
 
         navigationPanel.revalidate();
         navigationPanel.repaint();
 
         updateSummaryCards();
+
         showPage(currentPage);
     }
 
-    private void addNavigationItem(String key, String label) {
+    private void addNavigationItem(
+        String key,
+        String label
+    ) {
 
         JButton button = new JButton(label);
 
-        button.setFont(new Font("Arial", Font.BOLD, 11));
+        button.setFont(
+            new Font("Arial", Font.BOLD, 11)
+        );
+
         button.setForeground(TEXT);
         button.setBackground(PANEL);
-        button.setHorizontalAlignment(SwingConstants.LEFT);
+
+        button.setHorizontalAlignment(
+            SwingConstants.LEFT
+        );
+
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setOpaque(true);
 
         button.setMaximumSize(
-            new Dimension(Integer.MAX_VALUE, 38)
+            new Dimension(
+                Integer.MAX_VALUE,
+                38
+            )
         );
 
-        button.setPreferredSize(new Dimension(175, 38));
+        button.setPreferredSize(
+            new Dimension(175, 38)
+        );
 
         button.setBorder(
-            BorderFactory.createEmptyBorder(0, 13, 0, 5)
+            BorderFactory.createEmptyBorder(
+                0,
+                13,
+                0,
+                5
+            )
         );
 
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.addActionListener(e -> showPage(key));
+        button.setCursor(
+            new Cursor(Cursor.HAND_CURSOR)
+        );
+
+        button.addActionListener(
+            e -> showPage(key)
+        );
 
         navigationButtons.add(button);
 
         navigationPanel.add(button);
-        navigationPanel.add(Box.createVerticalStrut(3));
+
+        navigationPanel.add(
+            Box.createVerticalStrut(3)
+        );
     }
 
     private void showPage(String key) {
 
         currentPage = key;
+
         pageLayout.show(pageContainer, key);
 
         String[] keys = {
@@ -323,15 +494,27 @@ public class PerformanceDashboard extends JPanel {
 
             if (keys[i].equals(key)) {
 
-                button.setBackground(new Color(53, 91, 64));
+                button.setBackground(
+                    new Color(53, 91, 64)
+                );
+
                 button.setForeground(LIGHT_GREEN);
 
                 button.setBorder(
                     BorderFactory.createCompoundBorder(
                         BorderFactory.createMatteBorder(
-                            0, 3, 0, 0, LIGHT_GREEN
+                            0,
+                            3,
+                            0,
+                            0,
+                            LIGHT_GREEN
                         ),
-                        BorderFactory.createEmptyBorder(0, 10, 0, 5)
+                        BorderFactory.createEmptyBorder(
+                            0,
+                            10,
+                            0,
+                            5
+                        )
                     )
                 );
 
@@ -341,7 +524,12 @@ public class PerformanceDashboard extends JPanel {
                 button.setForeground(TEXT);
 
                 button.setBorder(
-                    BorderFactory.createEmptyBorder(0, 13, 0, 5)
+                    BorderFactory.createEmptyBorder(
+                        0,
+                        13,
+                        0,
+                        5
+                    )
                 );
             }
         }
@@ -357,43 +545,77 @@ public class PerformanceDashboard extends JPanel {
     private JPanel createHeader() {
 
         JPanel wrapper = new JPanel(new BorderLayout());
+
         wrapper.setBackground(BACKGROUND);
 
         wrapper.setBorder(
-            BorderFactory.createEmptyBorder(12, 18, 10, 18)
+            BorderFactory.createEmptyBorder(
+                12,
+                18,
+                10,
+                18
+            )
         );
 
-        JPanel header = new JPanel(new BorderLayout(10, 8));
+        JPanel header =
+            new JPanel(new BorderLayout(10, 8));
+
         header.setBackground(BACKGROUND);
 
         JPanel titlePanel = new JPanel();
+
         titlePanel.setOpaque(false);
+
         titlePanel.setLayout(
-            new BoxLayout(titlePanel, BoxLayout.Y_AXIS)
+            new BoxLayout(
+                titlePanel,
+                BoxLayout.Y_AXIS
+            )
         );
 
         JLabel title = new JLabel("MUSHROOM MAZE");
-        title.setFont(new Font("Arial", Font.BOLD, 21));
+
+        title.setFont(
+            new Font("Arial", Font.BOLD, 21)
+        );
+
         title.setForeground(TEXT);
 
         JLabel subtitle = new JLabel(
             "ALGORITHM PERFORMANCE ANALYTICS"
         );
-        subtitle.setFont(new Font("Arial", Font.PLAIN, 10));
+
+        subtitle.setFont(
+            new Font("Arial", Font.PLAIN, 10)
+        );
+
         subtitle.setForeground(LIGHT_GREEN);
 
         titlePanel.add(title);
-        titlePanel.add(Box.createVerticalStrut(3));
+
+        titlePanel.add(
+            Box.createVerticalStrut(3)
+        );
+
         titlePanel.add(subtitle);
 
         JPanel actions = new JPanel(
-            new FlowLayout(FlowLayout.RIGHT, 6, 0)
+            new FlowLayout(
+                FlowLayout.RIGHT,
+                6,
+                0
+            )
         );
+
         actions.setOpaque(false);
 
         statusLabel = new JLabel("Ready");
+
         statusLabel.setForeground(MUTED);
-        statusLabel.setFont(new Font("Arial", Font.PLAIN, 10));
+
+        statusLabel.setFont(
+            new Font("Arial", Font.PLAIN, 10)
+        );
 
         JButton backButton = createButton(
             "BACK TO MENU",
@@ -411,52 +633,93 @@ public class PerformanceDashboard extends JPanel {
         );
 
         backButton.addActionListener(e -> {
+
             if (onBack != null) {
                 onBack.run();
             }
         });
 
-        exportButton.addActionListener(e -> exportCSV());
-        runButton.addActionListener(e -> runBenchmark());
+        exportButton.addActionListener(
+            e -> exportCSV()
+        );
+
+        runButton.addActionListener(
+            e -> runBenchmark()
+        );
 
         actions.add(statusLabel);
         actions.add(backButton);
         actions.add(exportButton);
         actions.add(runButton);
 
-        header.add(titlePanel, BorderLayout.WEST);
-        header.add(actions, BorderLayout.EAST);
+        header.add(
+            titlePanel,
+            BorderLayout.WEST
+        );
 
-        wrapper.add(header, BorderLayout.NORTH);
+        header.add(
+            actions,
+            BorderLayout.EAST
+        );
 
-        summaryPanel = new JPanel(new GridLayout(1, 4, 8, 0));
+        wrapper.add(
+            header,
+            BorderLayout.NORTH
+        );
+
+        summaryPanel = new JPanel(
+            new GridLayout(1, 5, 8, 0)
+        );
+
         summaryPanel.setBackground(BACKGROUND);
 
         summaryPanel.setBorder(
-            BorderFactory.createEmptyBorder(10, 0, 0, 0)
+            BorderFactory.createEmptyBorder(
+                10,
+                0,
+                0,
+                0
+            )
         );
 
         updateSummaryCards();
 
-        wrapper.add(summaryPanel, BorderLayout.CENTER);
+        wrapper.add(
+            summaryPanel,
+            BorderLayout.CENTER
+        );
 
         return wrapper;
     }
 
-    private JButton createButton(String text, Color color) {
+    private JButton createButton(
+        String text,
+        Color color
+    ) {
 
         JButton button = new JButton(text);
 
-        button.setFont(new Font("Arial", Font.BOLD, 10));
+        button.setFont(
+            new Font("Arial", Font.BOLD, 10)
+        );
+
         button.setForeground(Color.WHITE);
         button.setBackground(color);
+
         button.setFocusPainted(false);
 
         button.setBorder(
-            BorderFactory.createEmptyBorder(9, 11, 9, 11)
+            BorderFactory.createEmptyBorder(
+                9,
+                11,
+                9,
+                11
+            )
         );
 
-        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        button.setCursor(
+            new Cursor(Cursor.HAND_CURSOR)
+        );
 
         return button;
     }
@@ -477,12 +740,15 @@ public class PerformanceDashboard extends JPanel {
 
         int bfsCount = 0;
         int dfsCount = 0;
+        int aStarCount = 0;
 
         for (String[] row : results) {
 
             try {
 
-                sizes.add(Integer.parseInt(row[0]));
+                sizes.add(
+                    Integer.parseInt(row[0])
+                );
 
                 if (row[1].equalsIgnoreCase("BFS")) {
                     bfsCount++;
@@ -492,13 +758,17 @@ public class PerformanceDashboard extends JPanel {
                     dfsCount++;
                 }
 
+                if (row[1].equalsIgnoreCase("A*")) {
+                    aStarCount++;
+                }
+
             } catch (Exception ignored) {
             }
         }
 
         summaryPanel.add(
             createSummaryCard(
-                "MAZE SIZES TESTED",
+                "MAZE SIZES",
                 String.valueOf(sizes.size()),
                 "Different input sizes"
             )
@@ -508,7 +778,7 @@ public class PerformanceDashboard extends JPanel {
             createSummaryCard(
                 "BFS RECORDS",
                 String.valueOf(bfsCount),
-                "Average benchmark results"
+                "Benchmark results"
             )
         );
 
@@ -516,7 +786,15 @@ public class PerformanceDashboard extends JPanel {
             createSummaryCard(
                 "DFS RECORDS",
                 String.valueOf(dfsCount),
-                "Average benchmark results"
+                "Benchmark results"
+            )
+        );
+
+        summaryPanel.add(
+            createSummaryCard(
+                "A* RECORDS",
+                String.valueOf(aStarCount),
+                "Benchmark results"
             )
         );
 
@@ -539,9 +817,14 @@ public class PerformanceDashboard extends JPanel {
     ) {
 
         JPanel card = new JPanel();
+
         card.setBackground(CARD);
+
         card.setLayout(
-            new BoxLayout(card, BoxLayout.Y_AXIS)
+            new BoxLayout(
+                card,
+                BoxLayout.Y_AXIS
+            )
         );
 
         card.setBorder(
@@ -549,21 +832,39 @@ public class PerformanceDashboard extends JPanel {
                 BorderFactory.createLineBorder(
                     new Color(57, 78, 63)
                 ),
-                BorderFactory.createEmptyBorder(7, 10, 7, 10)
+                BorderFactory.createEmptyBorder(
+                    7,
+                    10,
+                    7,
+                    10
+                )
             )
         );
 
         JLabel headingLabel = new JLabel(heading);
+
         headingLabel.setForeground(MUTED);
-        headingLabel.setFont(new Font("Arial", Font.BOLD, 9));
+
+        headingLabel.setFont(
+            new Font("Arial", Font.BOLD, 9)
+        );
 
         JLabel valueLabel = new JLabel(value);
-        valueLabel.setForeground(LIGHT_GREEN);
-        valueLabel.setFont(new Font("Arial", Font.BOLD, 21));
 
-        JLabel descriptionLabel = new JLabel(description);
+        valueLabel.setForeground(LIGHT_GREEN);
+
+        valueLabel.setFont(
+            new Font("Arial", Font.BOLD, 21)
+        );
+
+        JLabel descriptionLabel =
+            new JLabel(description);
+
         descriptionLabel.setForeground(MUTED);
-        descriptionLabel.setFont(new Font("Arial", Font.PLAIN, 9));
+
+        descriptionLabel.setFont(
+            new Font("Arial", Font.PLAIN, 9)
+        );
 
         card.add(headingLabel);
         card.add(Box.createVerticalStrut(2));
@@ -582,92 +883,123 @@ public class PerformanceDashboard extends JPanel {
 
         JPanel panel = createBasePanel();
 
-        JPanel welcome = new JPanel(new BorderLayout(10, 10));
-        welcome.setBackground(new Color(42, 75, 52));
+        JPanel welcome = new JPanel(
+            new BorderLayout(10, 10)
+        );
+
+        welcome.setBackground(
+            new Color(42, 75, 52)
+        );
 
         welcome.setBorder(
             BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(
                     new Color(75, 125, 82)
                 ),
-                BorderFactory.createEmptyBorder(16, 17, 16, 17)
+                BorderFactory.createEmptyBorder(
+                    16,
+                    17,
+                    16,
+                    17
+                )
             )
         );
 
         JLabel welcomeTitle = new JLabel(
             "Welcome to Performance Analytics"
         );
-        welcomeTitle.setForeground(Color.WHITE);
-        welcomeTitle.setFont(new Font("Arial", Font.BOLD, 19));
 
-        JTextArea welcomeDescription = new JTextArea(
-            "Explore how Breadth-First Search (BFS) and "
-            + "Depth-First Search (DFS) perform when solving "
-            + "different sizes of the Mushroom Maze."
+        welcomeTitle.setForeground(Color.WHITE);
+
+        welcomeTitle.setFont(
+            new Font("Arial", Font.BOLD, 19)
         );
+
+        JTextArea welcomeDescription =
+            new JTextArea(
+                "Explore how Breadth-First Search (BFS), "
+                + "Depth-First Search (DFS), and A* Search "
+                + "perform when solving different sizes "
+                + "of the Mushroom Maze."
+            );
 
         welcomeDescription.setEditable(false);
         welcomeDescription.setLineWrap(true);
         welcomeDescription.setWrapStyleWord(true);
-        welcomeDescription.setBackground(new Color(42, 75, 52));
+
+        welcomeDescription.setBackground(
+            new Color(42, 75, 52)
+        );
+
         welcomeDescription.setForeground(
             new Color(225, 239, 225)
         );
+
         welcomeDescription.setFont(
             new Font("Arial", Font.PLAIN, 12)
         );
 
-        welcome.add(welcomeTitle, BorderLayout.NORTH);
-        welcome.add(welcomeDescription, BorderLayout.CENTER);
+        welcome.add(
+            welcomeTitle,
+            BorderLayout.NORTH
+        );
 
-        welcome.setAlignmentX(Component.LEFT_ALIGNMENT);
+        welcome.add(
+            welcomeDescription,
+            BorderLayout.CENTER
+        );
+
+        welcome.setAlignmentX(
+            Component.LEFT_ALIGNMENT
+        );
 
         panel.add(welcome);
-        panel.add(Box.createVerticalStrut(18));
 
-        JLabel highlightsTitle = createSectionTitle(
-            "Performance Highlights"
+        panel.add(
+            Box.createVerticalStrut(18)
         );
-        highlightsTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel highlightsTitle =
+            createSectionTitle("Performance Highlights");
+
+        highlightsTitle.setAlignmentX(
+            Component.LEFT_ALIGNMENT
+        );
+
         panel.add(highlightsTitle);
 
-        TreeMap<Integer, double[]> data = getGraphData();
+        TreeMap<Integer, double[]> data =
+            getGraphData();
 
-        double[] timeAverages = getPairedAverages(
-            data, BFS_TIME, DFS_TIME
+        String fastest = getBestAlgorithm(
+            data,
+            new int[] {
+                BFS_TIME,
+                DFS_TIME,
+                ASTAR_TIME
+            }
         );
 
-        double[] memoryAverages = getPairedAverages(
-            data, BFS_MEMORY, DFS_MEMORY
+        String memoryEfficient = getBestAlgorithm(
+            data,
+            new int[] {
+                BFS_MEMORY,
+                DFS_MEMORY,
+                ASTAR_MEMORY
+            }
         );
-
-        String fasterAlgorithm = "No Data";
-        String memoryEfficient = "No Data";
-
-        if (timeAverages != null) {
-            fasterAlgorithm = compare(
-                timeAverages[0],
-                timeAverages[1]
-            );
-        }
-
-        if (memoryAverages != null) {
-            memoryEfficient = compare(
-                memoryAverages[0],
-                memoryAverages[1]
-            );
-        }
 
         JPanel highlightCards = new JPanel(
             new GridLayout(1, 2, 10, 0)
         );
+
         highlightCards.setBackground(BACKGROUND);
 
         highlightCards.add(
             createSummaryCard(
-                "FASTER ALGORITHM",
-                fasterAlgorithm,
-                "Based on paired average execution time"
+                "FASTEST ALGORITHM",
+                fastest,
+                "Based on average execution time"
             )
         );
 
@@ -675,17 +1007,26 @@ public class PerformanceDashboard extends JPanel {
             createSummaryCard(
                 "LOWER MEMORY ALLOCATION",
                 memoryEfficient,
-                "Based on paired average allocation"
+                "Based on average allocated memory"
             )
         );
 
         highlightCards.setMaximumSize(
-            new Dimension(Integer.MAX_VALUE, 100)
+            new Dimension(
+                Integer.MAX_VALUE,
+                100
+            )
         );
-        highlightCards.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        highlightCards.setAlignmentX(
+            Component.LEFT_ALIGNMENT
+        );
 
         panel.add(highlightCards);
-        panel.add(Box.createVerticalStrut(18));
+
+        panel.add(
+            Box.createVerticalStrut(18)
+        );
 
         addTextSection(
             panel,
@@ -695,23 +1036,26 @@ public class PerformanceDashboard extends JPanel {
             + "NUMBER OF RUNS\n"
             + "5 runs for every maze size.\n\n"
             + "ALGORITHMS\n"
-            + "Breadth-First Search (BFS) and Depth-First Search (DFS).\n\n"
+            + "Breadth-First Search (BFS), Depth-First Search (DFS), "
+            + "and A* Search.\n\n"
             + "TESTING METHOD\n"
-            + "Both algorithms use the same generated maze within each benchmark trial. "
-            + "The CSV stores the average result for each algorithm and maze size."
+            + "All three algorithms use the same generated maze "
+            + "within each benchmark trial. Their execution order "
+            + "is rotated across runs. The CSV stores the average "
+            + "result for each algorithm and maze size."
         );
 
         addTextSection(
             panel,
             "Available Analytics",
             "EXECUTION TIME\n"
-            + "View how long each algorithm takes to explore and solve the maze.\n\n"
+            + "Compare how long each algorithm takes to solve the maze.\n\n"
             + "MEMORY ALLOCATION\n"
-            + "Compare the memory allocated by each algorithm's thread during execution.\n\n"
+            + "Compare memory allocated by each algorithm's thread.\n\n"
             + "VISITED CELLS\n"
             + "Analyze how many cells each algorithm explores.\n\n"
             + "ALGORITHM COMPARISON\n"
-            + "Compare BFS and DFS using tables and graphs.\n\n"
+            + "Compare BFS, DFS, and A* using charts and tables.\n\n"
             + "COMPLEXITY ANALYSIS\n"
             + "Understand the theoretical time and space complexity."
         );
@@ -738,7 +1082,7 @@ public class PerformanceDashboard extends JPanel {
             dataStatus =
                 "The dashboard currently contains "
                 + results.size()
-                + " average benchmark records loaded from "
+                + " benchmark records loaded from "
                 + CSV_FILE + ".";
         }
 
@@ -765,9 +1109,12 @@ public class PerformanceDashboard extends JPanel {
             return false;
         }
 
-        try (BufferedReader reader = new BufferedReader(
-            new FileReader(file)
-        )) {
+        try (
+            BufferedReader reader =
+                new BufferedReader(
+                    new FileReader(file)
+                )
+        ) {
 
             String header = reader.readLine();
 
@@ -783,7 +1130,8 @@ public class PerformanceDashboard extends JPanel {
                     continue;
                 }
 
-                String[] values = line.split(",", -1);
+                String[] values =
+                    line.split(",", -1);
 
                 if (values.length < 5) {
                     continue;
@@ -791,12 +1139,14 @@ public class PerformanceDashboard extends JPanel {
 
                 try {
 
-                    Integer.parseInt(values[0].trim());
+                    Integer.parseInt(
+                        values[0].trim()
+                    );
 
-                    String algorithm = values[1].trim();
+                    String algorithm =
+                        values[1].trim();
 
-                    if (!algorithm.equalsIgnoreCase("BFS")
-                        && !algorithm.equalsIgnoreCase("DFS")) {
+                    if (!isSupportedAlgorithm(algorithm)) {
                         continue;
                     }
 
@@ -809,8 +1159,18 @@ public class PerformanceDashboard extends JPanel {
             return !results.isEmpty();
 
         } catch (IOException e) {
+
             return false;
         }
+    }
+
+    private boolean isSupportedAlgorithm(
+        String algorithm
+    ) {
+
+        return algorithm.equalsIgnoreCase("BFS")
+            || algorithm.equalsIgnoreCase("DFS")
+            || algorithm.equalsIgnoreCase("A*");
     }
 
     // ==========================================
@@ -822,7 +1182,9 @@ public class PerformanceDashboard extends JPanel {
         runButton.setEnabled(false);
         exportButton.setEnabled(false);
 
-        statusLabel.setText("Running benchmark...");
+        statusLabel.setText(
+            "Running benchmark..."
+        );
 
         SwingWorker<Void, Void> worker =
             new SwingWorker<Void, Void>() {
@@ -845,6 +1207,7 @@ public class PerformanceDashboard extends JPanel {
                         if (loadCSV()) {
 
                             buildPages();
+
                             updateSummaryCards();
 
                             statusLabel.setText(
@@ -859,8 +1222,8 @@ public class PerformanceDashboard extends JPanel {
 
                             JOptionPane.showMessageDialog(
                                 PerformanceDashboard.this,
-                                "The benchmark finished, but no valid CSV results "
-                                + "could be loaded.",
+                                "The benchmark finished, but no valid CSV "
+                                + "results could be loaded.",
                                 "Benchmark Results",
                                 JOptionPane.WARNING_MESSAGE
                             );
@@ -868,7 +1231,9 @@ public class PerformanceDashboard extends JPanel {
 
                     } catch (Exception ex) {
 
-                        statusLabel.setText("Benchmark failed");
+                        statusLabel.setText(
+                            "Benchmark failed"
+                        );
 
                         JOptionPane.showMessageDialog(
                             PerformanceDashboard.this,
@@ -924,7 +1289,8 @@ public class PerformanceDashboard extends JPanel {
         if (chooser.showSaveDialog(this) ==
             JFileChooser.APPROVE_OPTION) {
 
-            File destination = chooser.getSelectedFile();
+            File destination =
+                chooser.getSelectedFile();
 
             if (destination.exists()) {
 
@@ -941,11 +1307,15 @@ public class PerformanceDashboard extends JPanel {
             }
 
             try (
-                InputStream input = new FileInputStream(source);
-                OutputStream output = new FileOutputStream(destination)
+                InputStream input =
+                    new FileInputStream(source);
+
+                OutputStream output =
+                    new FileOutputStream(destination)
             ) {
 
                 byte[] buffer = new byte[8192];
+
                 int length;
 
                 while ((length = input.read(buffer)) > 0) {
@@ -979,11 +1349,19 @@ public class PerformanceDashboard extends JPanel {
 
     private JPanel createResultsPanel() {
 
-        JPanel panel = new JPanel(new BorderLayout(10, 15));
+        JPanel panel = new JPanel(
+            new BorderLayout(10, 15)
+        );
+
         panel.setBackground(BACKGROUND);
 
         panel.setBorder(
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+            BorderFactory.createEmptyBorder(
+                15,
+                15,
+                15,
+                15
+            )
         );
 
         panel.add(
@@ -1003,7 +1381,10 @@ public class PerformanceDashboard extends JPanel {
             new DefaultTableModel(columns, 0) {
 
                 @Override
-                public boolean isCellEditable(int row, int column) {
+                public boolean isCellEditable(
+                    int row,
+                    int column
+                ) {
                     return false;
                 }
             };
@@ -1022,6 +1403,7 @@ public class PerformanceDashboard extends JPanel {
         }
 
         JTable table = new JTable(model);
+
         styleTable(table);
 
         TableRowSorter<DefaultTableModel> sorter =
@@ -1030,6 +1412,7 @@ public class PerformanceDashboard extends JPanel {
         table.setRowSorter(sorter);
 
         JScrollPane scroll = new JScrollPane(table);
+
         scroll.getViewport().setBackground(PANEL);
 
         scroll.setBorder(
@@ -1038,7 +1421,10 @@ public class PerformanceDashboard extends JPanel {
             )
         );
 
-        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(
+            scroll,
+            BorderLayout.CENTER
+        );
 
         JLabel note = new JLabel(
             "Each row contains the average of five benchmark runs. "
@@ -1046,7 +1432,10 @@ public class PerformanceDashboard extends JPanel {
         );
 
         note.setForeground(MUTED);
-        note.setFont(new Font("Arial", Font.PLAIN, 10));
+
+        note.setFont(
+            new Font("Arial", Font.PLAIN, 10)
+        );
 
         panel.add(note, BorderLayout.SOUTH);
 
@@ -1056,14 +1445,24 @@ public class PerformanceDashboard extends JPanel {
     private void styleTable(JTable table) {
 
         table.setRowHeight(30);
-        table.setFont(new Font("Arial", Font.PLAIN, 12));
+
+        table.setFont(
+            new Font("Arial", Font.PLAIN, 12)
+        );
 
         table.setBackground(PANEL);
         table.setForeground(TEXT);
-        table.setGridColor(new Color(55, 73, 61));
 
-        table.setSelectionBackground(new Color(65, 110, 74));
+        table.setGridColor(
+            new Color(55, 73, 61)
+        );
+
+        table.setSelectionBackground(
+            new Color(65, 110, 74)
+        );
+
         table.setSelectionForeground(Color.WHITE);
+
         table.setShowVerticalLines(false);
 
         table.getTableHeader().setFont(
@@ -1074,7 +1473,10 @@ public class PerformanceDashboard extends JPanel {
             new Color(49, 91, 54)
         );
 
-        table.getTableHeader().setForeground(Color.WHITE);
+        table.getTableHeader().setForeground(
+            Color.WHITE
+        );
+
         table.getTableHeader().setReorderingAllowed(false);
     }
 
@@ -1089,11 +1491,19 @@ public class PerformanceDashboard extends JPanel {
         boolean grouped
     ) {
 
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(
+            new BorderLayout()
+        );
+
         panel.setBackground(BACKGROUND);
 
         panel.setBorder(
-            BorderFactory.createEmptyBorder(12, 12, 12, 12)
+            BorderFactory.createEmptyBorder(
+                12,
+                12,
+                12,
+                12
+            )
         );
 
         panel.add(
@@ -1108,7 +1518,10 @@ public class PerformanceDashboard extends JPanel {
             grouped
         );
 
-        panel.add(chart, BorderLayout.CENTER);
+        panel.add(
+            chart,
+            BorderLayout.CENTER
+        );
 
         return panel;
     }
@@ -1125,6 +1538,7 @@ public class PerformanceDashboard extends JPanel {
             panel,
             "Breadth-First Search (BFS)",
             "BFS explores neighboring cells level by level using a Queue.\n\n"
+            + "DATA STRUCTURE: Queue\n\n"
             + "TIME COMPLEXITY: O(V + E)\n"
             + "SPACE COMPLEXITY: O(V)\n\n"
             + "BFS guarantees the shortest path in an unweighted maze "
@@ -1135,10 +1549,28 @@ public class PerformanceDashboard extends JPanel {
             panel,
             "Depth-First Search (DFS)",
             "DFS explores one route deeply before backtracking. "
-            + "It commonly uses a Stack or recursion.\n\n"
+            + "It uses a Stack in this implementation.\n\n"
+            + "DATA STRUCTURE: Stack\n\n"
             + "TIME COMPLEXITY: O(V + E)\n"
             + "SPACE COMPLEXITY: O(V)\n\n"
             + "DFS does not guarantee the shortest path."
+        );
+
+        addTextSection(
+            panel,
+            "A* Search",
+            "A* selects the next cell using its estimated total cost:\n\n"
+            + "f(n) = g(n) + h(n)\n\n"
+            + "g(n) represents the cost from the starting cell to the "
+            + "current cell.\n\n"
+            + "h(n) estimates the remaining distance to the exit. "
+            + "This implementation uses Manhattan distance.\n\n"
+            + "DATA STRUCTURE: Priority Queue\n\n"
+            + "TYPICAL TIME COMPLEXITY: O((V + E) log V)\n"
+            + "TYPICAL SPACE COMPLEXITY: O(V + E)\n\n"
+            + "For a grid maze with a bounded number of neighbors per cell, "
+            + "E is proportional to V. The priority queue helps A* select "
+            + "the cell with the lowest estimated total cost."
         );
 
         addTextSection(
@@ -1153,46 +1585,58 @@ public class PerformanceDashboard extends JPanel {
             panel,
             "Effect of Input Size",
             "Larger mazes generally contain more cells and possible connections.\n\n"
-            + "This can increase the amount of work required by both algorithms.\n\n"
-            + "Actual measurements depend on maze structure, the search order, "
-            + "and the execution environment."
+            + "This can increase the amount of work required by all three algorithms.\n\n"
+            + "Actual measurements depend on maze structure, search order, "
+            + "the data structures used, and the execution environment."
         );
 
         addTextSection(
             panel,
             "Important Comparison",
-            "BFS is appropriate when the shortest path is important.\n\n"
-            + "DFS can explore routes without guaranteeing the shortest solution.\n\n"
-            + "Both algorithms have O(V + E) time complexity and O(V) "
-            + "auxiliary space complexity."
+            "BFS is useful when finding the shortest path in an unweighted maze.\n\n"
+            + "DFS explores deeply but does not guarantee the shortest solution.\n\n"
+            + "A* uses a heuristic to guide its search toward the goal. "
+            + "Its effectiveness depends partly on the quality of the heuristic.\n\n"
+            + "Theoretical complexity describes general growth, while "
+            + "benchmark results show observed performance on the tested mazes."
         );
 
         return wrapScroll(panel);
     }
 
     // ==========================================
-    // BFS VS DFS SUMMARY
+    // THREE-ALGORITHM SUMMARY
     // ==========================================
 
     private JPanel createComparisonPanel() {
 
-        JPanel panel = new JPanel(new BorderLayout(10, 15));
+        JPanel panel = new JPanel(
+            new BorderLayout(10, 15)
+        );
+
         panel.setBackground(BACKGROUND);
 
         panel.setBorder(
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+            BorderFactory.createEmptyBorder(
+                15,
+                15,
+                15,
+                15
+            )
         );
 
         panel.add(
-            createSectionTitle("BFS vs DFS Summary"),
+            createSectionTitle(
+                "BFS vs DFS vs A* Summary"
+            ),
             BorderLayout.NORTH
         );
 
         String[] columns = {
             "Maze Size",
-            "Faster Algorithm",
-            "Fewer Visited Cells",
-            "Lower Memory Allocation",
+            "Fastest Algorithm",
+            "Fewest Visited Cells",
+            "Lowest Memory Allocation",
             "Time Difference"
         };
 
@@ -1200,94 +1644,98 @@ public class PerformanceDashboard extends JPanel {
             new DefaultTableModel(columns, 0) {
 
                 @Override
-                public boolean isCellEditable(int row, int column) {
+                public boolean isCellEditable(
+                    int row,
+                    int column
+                ) {
                     return false;
                 }
             };
 
-        TreeMap<Integer, double[]> data = getGraphData();
+        TreeMap<Integer, double[]> data =
+            getGraphData();
 
-        for (Map.Entry<Integer, double[]> entry : data.entrySet()) {
+        for (Map.Entry<Integer, double[]> entry :
+            data.entrySet()) {
 
-            double[] v = entry.getValue();
+            double[] values = entry.getValue();
 
-            String faster = compare(v[BFS_TIME], v[DFS_TIME]);
-            String fewer = compare(v[BFS_VISITED], v[DFS_VISITED]);
-            String lowerMemory = compare(
-                v[BFS_MEMORY],
-                v[DFS_MEMORY]
+            String fastest = getBestAlgorithm(
+                values,
+                new int[] {
+                    BFS_TIME,
+                    DFS_TIME,
+                    ASTAR_TIME
+                }
             );
 
-            String difference = "Unavailable";
+            String fewestVisited = getBestAlgorithm(
+                values,
+                new int[] {
+                    BFS_VISITED,
+                    DFS_VISITED,
+                    ASTAR_VISITED
+                }
+            );
 
-            if (Double.isFinite(v[BFS_TIME]) &&
-                Double.isFinite(v[DFS_TIME])) {
+            String lowestMemory = getBestAlgorithm(
+                values,
+                new int[] {
+                    BFS_MEMORY,
+                    DFS_MEMORY,
+                    ASTAR_MEMORY
+                }
+            );
 
-                double high = Math.max(
-                    v[BFS_TIME],
-                    v[DFS_TIME]
-                );
-
-                double low = Math.min(
-                    v[BFS_TIME],
-                    v[DFS_TIME]
-                );
-
-                difference = high == 0
-                    ? "0.00%"
-                    : String.format(
-                        Locale.US,
-                        "%.2f%%",
-                        (high - low) / high * 100
-                    );
-            }
+            String difference =
+                getTimeDifference(values);
 
             int size = entry.getKey();
 
             model.addRow(new Object[] {
                 size + "x" + size,
-                faster,
-                fewer,
-                lowerMemory,
+                fastest,
+                fewestVisited,
+                lowestMemory,
                 difference
             });
         }
 
         JTable table = new JTable(model);
+
         styleTable(table);
 
         JScrollPane scroll = new JScrollPane(table);
+
         scroll.getViewport().setBackground(PANEL);
 
-        panel.add(scroll, BorderLayout.CENTER);
+        panel.add(
+            scroll,
+            BorderLayout.CENTER
+        );
 
         JTextArea explanation = createTextArea(
             "HOW TO READ THIS TABLE\n\n"
-            + "Faster Algorithm: The algorithm with the lower average execution time.\n\n"
-            + "Fewer Visited Cells: The algorithm that explored fewer cells.\n\n"
-            + "Lower Memory Allocation: The algorithm with lower allocated memory.\n\n"
-            + "Time Difference: The percentage difference between the faster "
-            + "and slower execution times.\n\n"
-            + "Unavailable means a measurement could not be obtained. "
-            + "Tie means both algorithms recorded equal values."
+            + "Fastest Algorithm: The algorithm with the lowest "
+            + "average execution time.\n\n"
+            + "Fewest Visited Cells: The algorithm that explored "
+            + "the fewest cells.\n\n"
+            + "Lowest Memory Allocation: The algorithm with the "
+            + "lowest measured thread-allocated memory.\n\n"
+            + "Time Difference: The percentage difference between "
+            + "the fastest and slowest valid execution times.\n\n"
+            + "Tie means the compared algorithms recorded equal values. "
+            + "Unavailable means no valid measurement was available."
         );
 
         explanation.setRows(7);
-        panel.add(explanation, BorderLayout.SOUTH);
+
+        panel.add(
+            explanation,
+            BorderLayout.SOUTH
+        );
 
         return panel;
-    }
-
-    private String compare(double a, double b) {
-
-        if (!Double.isFinite(a) || !Double.isFinite(b)) {
-            return "Unavailable";
-        }
-
-        if (a < b) return "BFS";
-        if (b < a) return "DFS";
-
-        return "Tie";
     }
 
     // ==========================================
@@ -1298,13 +1746,21 @@ public class PerformanceDashboard extends JPanel {
 
         JPanel panel = createBasePanel();
 
-        TreeMap<Integer, double[]> data = getGraphData();
+        TreeMap<Integer, double[]> data =
+            getGraphData();
 
         addTextSection(
             panel,
             "Overall Execution Time",
             buildOverallComparison(
-                data, BFS_TIME, DFS_TIME, "execution time"
+                data,
+                new int[] {
+                    BFS_TIME,
+                    DFS_TIME,
+                    ASTAR_TIME
+                },
+                "execution time",
+                "ms"
             )
         );
 
@@ -1312,61 +1768,92 @@ public class PerformanceDashboard extends JPanel {
             panel,
             "Overall Memory Allocation",
             buildOverallComparison(
-                data, BFS_MEMORY, DFS_MEMORY, "memory allocation"
+                data,
+                new int[] {
+                    BFS_MEMORY,
+                    DFS_MEMORY,
+                    ASTAR_MEMORY
+                },
+                "memory allocation",
+                "KB"
             )
         );
 
         addTextSection(
             panel,
-            "Execution Time Interpretation",
-            buildPairInterpretation(
-                data, BFS_TIME, DFS_TIME, "ms", "execution time"
+            "Overall Visited Cells",
+            buildOverallComparison(
+                data,
+                new int[] {
+                    BFS_VISITED,
+                    DFS_VISITED,
+                    ASTAR_VISITED
+                },
+                "visited cells",
+                "cells"
             )
         );
 
         addTextSection(
             panel,
-            "Memory Allocation Interpretation",
-            buildPairInterpretation(
-                data, BFS_MEMORY, DFS_MEMORY,
-                "KB", "memory allocation"
+            "Execution Time by Maze Size",
+            buildMetricInterpretation(
+                data,
+                new int[] {
+                    BFS_TIME,
+                    DFS_TIME,
+                    ASTAR_TIME
+                },
+                "ms",
+                "execution time"
             )
         );
 
         addTextSection(
             panel,
-            "Visited Cells Interpretation",
-            buildPairInterpretation(
-                data, BFS_VISITED, DFS_VISITED,
-                "cells", "visited cells"
+            "Memory Allocation by Maze Size",
+            buildMetricInterpretation(
+                data,
+                new int[] {
+                    BFS_MEMORY,
+                    DFS_MEMORY,
+                    ASTAR_MEMORY
+                },
+                "KB",
+                "memory allocation"
             )
         );
 
         addTextSection(
             panel,
-            "Execution Time Trend",
-            buildTrend(
-                data, BFS_TIME, DFS_TIME,
-                "ms", "execution time"
+            "Visited Cells by Maze Size",
+            buildMetricInterpretation(
+                data,
+                new int[] {
+                    BFS_VISITED,
+                    DFS_VISITED,
+                    ASTAR_VISITED
+                },
+                "cells",
+                "visited cells"
             )
         );
 
         addTextSection(
             panel,
-            "Visited Cells Trend",
-            buildTrend(
-                data, BFS_VISITED, DFS_VISITED,
-                "cells", "visited cells"
-            )
+            "Performance Trend",
+            buildTrend(data)
         );
 
         addTextSection(
             panel,
             "Complexity Interpretation",
-            "BFS and DFS both have O(V + E) time complexity "
-            + "and O(V) auxiliary space complexity.\n\n"
-            + "As the maze becomes larger, the number of cells and possible "
-            + "connections increases.\n\n"
+            "BFS and DFS have O(V + E) time complexity and O(V) "
+            + "auxiliary space complexity in their graph-search implementations.\n\n"
+            + "A* uses a priority queue to select the next cell according "
+            + "to its estimated total cost. Its typical time complexity "
+            + "with a binary-heap priority queue is O((V + E) log V), "
+            + "with O(V + E) space in a general graph-search setting.\n\n"
             + "The benchmark measurements show observed behavior for the "
             + "tested mazes. They do not replace theoretical complexity analysis."
         );
@@ -1387,44 +1874,135 @@ public class PerformanceDashboard extends JPanel {
     }
 
     // ==========================================
-    // PAIRED AVERAGES
+    // GET BEST ALGORITHM
     // ==========================================
 
-    private double[] getPairedAverages(
+    private String getBestAlgorithm(
         TreeMap<Integer, double[]> data,
-        int bfsIndex,
-        int dfsIndex
+        int[] indexes
     ) {
 
-        double bfsTotal = 0;
-        double dfsTotal = 0;
+        double[] totals = new double[3];
 
-        int count = 0;
+        int[] counts = new int[3];
 
         for (double[] values : data.values()) {
 
-            double bfs = values[bfsIndex];
-            double dfs = values[dfsIndex];
+            for (int i = 0; i < 3; i++) {
 
-            // Only compare maze sizes where both algorithms
-            // have a valid measurement.
-            if (Double.isFinite(bfs) &&
-                Double.isFinite(dfs)) {
+                double value = values[indexes[i]];
 
-                bfsTotal += bfs;
-                dfsTotal += dfs;
-                count++;
+                if (Double.isFinite(value)) {
+
+                    totals[i] += value;
+                    counts[i]++;
+                }
             }
         }
 
-        if (count == 0) {
-            return null;
+        double[] averages = {
+            Double.NaN,
+            Double.NaN,
+            Double.NaN
+        };
+
+        for (int i = 0; i < 3; i++) {
+
+            if (counts[i] > 0) {
+                averages[i] = totals[i] / counts[i];
+            }
         }
 
-        return new double[] {
-            bfsTotal / count,
-            dfsTotal / count
+        return getBestAlgorithm(
+            averages,
+            new int[] {0, 1, 2}
+        );
+    }
+
+    private String getBestAlgorithm(
+        double[] values,
+        int[] indexes
+    ) {
+
+        double bestValue = Double.POSITIVE_INFINITY;
+
+        int bestIndex = -1;
+
+        boolean tie = false;
+
+        for (int i = 0; i < indexes.length; i++) {
+
+            double value = values[indexes[i]];
+
+            if (!Double.isFinite(value)) {
+                continue;
+            }
+
+            if (value < bestValue) {
+
+                bestValue = value;
+                bestIndex = i;
+                tie = false;
+
+            } else if (Double.compare(value, bestValue) == 0) {
+
+                tie = true;
+            }
+        }
+
+        if (bestIndex == -1) {
+            return "Unavailable";
+        }
+
+        if (tie) {
+            return "Tie";
+        }
+
+        return ALGORITHMS[bestIndex];
+    }
+
+    // ==========================================
+    // TIME DIFFERENCE
+    // ==========================================
+
+    private String getTimeDifference(double[] values) {
+
+        double[] times = {
+            values[BFS_TIME],
+            values[DFS_TIME],
+            values[ASTAR_TIME]
         };
+
+        double fastest = Double.POSITIVE_INFINITY;
+        double slowest = Double.NEGATIVE_INFINITY;
+
+        int validCount = 0;
+
+        for (double time : times) {
+
+            if (!Double.isFinite(time)) {
+                continue;
+            }
+
+            fastest = Math.min(fastest, time);
+            slowest = Math.max(slowest, time);
+
+            validCount++;
+        }
+
+        if (validCount < 2) {
+            return "Unavailable";
+        }
+
+        if (slowest == 0) {
+            return "0.00%";
+        }
+
+        return String.format(
+            Locale.US,
+            "%.2f%%",
+            ((slowest - fastest) / slowest) * 100
+        );
     }
 
     // ==========================================
@@ -1433,48 +2011,88 @@ public class PerformanceDashboard extends JPanel {
 
     private String buildOverallComparison(
         TreeMap<Integer, double[]> data,
-        int bfsIndex,
-        int dfsIndex,
-        String metric
+        int[] indexes,
+        String metric,
+        String unit
     ) {
 
-        double[] averages = getPairedAverages(
-            data,
-            bfsIndex,
-            dfsIndex
-        );
-
-        if (averages == null) {
-            return "Not enough paired data to compare " + metric + ".";
+        if (data.isEmpty()) {
+            return "No benchmark data is available.";
         }
 
-        double bfsAverage = averages[0];
-        double dfsAverage = averages[1];
+        double[] totals = new double[3];
 
-        String winner = compare(
-            bfsAverage,
-            dfsAverage
+        int[] counts = new int[3];
+
+        for (double[] values : data.values()) {
+
+            for (int i = 0; i < 3; i++) {
+
+                double value = values[indexes[i]];
+
+                if (Double.isFinite(value)) {
+
+                    totals[i] += value;
+                    counts[i]++;
+                }
+            }
+        }
+
+        StringBuilder output =
+            new StringBuilder();
+
+        output.append(
+            "Average " + metric + " across available maze sizes:\n\n"
         );
 
-        return "Based on the average values across maze sizes where "
-            + "both algorithms have valid measurements, the algorithm "
-            + "with lower " + metric + " is: " + winner + ".\n\n"
-            + String.format(
-                Locale.US,
-                "BFS average: %.4f\nDFS average: %.4f",
-                bfsAverage,
-                dfsAverage
-            );
+        for (int i = 0; i < 3; i++) {
+
+            output.append(ALGORITHMS[i])
+                .append(": ");
+
+            if (counts[i] == 0) {
+
+                output.append("Unavailable\n");
+
+            } else {
+
+                output.append(
+                    String.format(
+                        Locale.US,
+                        "%.4f %s",
+                        totals[i] / counts[i],
+                        unit
+                    )
+                );
+
+                output.append("\n");
+            }
+        }
+
+        output.append("\nBest result: ");
+
+        output.append(
+            getBestAlgorithm(data, indexes)
+        );
+
+        output.append(
+            "\n\nLower values indicate less "
+        );
+
+        output.append(metric);
+
+        output.append(".");
+
+        return output.toString();
     }
 
     // ==========================================
-    // PAIR INTERPRETATION
+    // METRIC INTERPRETATION
     // ==========================================
 
-    private String buildPairInterpretation(
+    private String buildMetricInterpretation(
         TreeMap<Integer, double[]> data,
-        int bfsIndex,
-        int dfsIndex,
+        int[] indexes,
         String unit,
         String metric
     ) {
@@ -1483,56 +2101,58 @@ public class PerformanceDashboard extends JPanel {
             return "No benchmark data is available.";
         }
 
-        StringBuilder text = new StringBuilder();
+        StringBuilder output =
+            new StringBuilder();
 
-        for (Map.Entry<Integer, double[]> entry : data.entrySet()) {
+        for (Map.Entry<Integer, double[]> entry :
+            data.entrySet()) {
 
             int size = entry.getKey();
 
-            double bfs = entry.getValue()[bfsIndex];
-            double dfs = entry.getValue()[dfsIndex];
+            double[] values = entry.getValue();
 
-            text.append(size)
+            output.append(size)
                 .append("x")
                 .append(size)
                 .append(" Maze\n");
 
-            if (!Double.isFinite(bfs) ||
-                !Double.isFinite(dfs)) {
+            for (int i = 0; i < 3; i++) {
 
-                text.append(
-                    "Not enough paired data to compare.\n\n"
-                );
+                double value = values[indexes[i]];
 
-                continue;
+                output.append(ALGORITHMS[i])
+                    .append(": ");
+
+                if (Double.isFinite(value)) {
+
+                    output.append(
+                        String.format(
+                            Locale.US,
+                            "%.2f %s",
+                            value,
+                            unit
+                        )
+                    );
+
+                } else {
+
+                    output.append("Unavailable");
+                }
+
+                output.append("\n");
             }
 
-            String winner = compare(bfs, dfs);
-
-            if (winner.equals("Tie")) {
-
-                text.append(
-                    "Both algorithms recorded equal values.\n"
+            output.append("Lowest ")
+                .append(metric)
+                .append(": ")
+                .append(
+                    getBestAlgorithm(values, indexes)
                 );
 
-            } else {
-
-                text.append(winner)
-                    .append(" recorded lower ")
-                    .append(metric)
-                    .append(".\n");
-            }
-
-            text.append(
-                String.format(
-                    Locale.US,
-                    "BFS: %.2f %s | DFS: %.2f %s\n\n",
-                    bfs, unit, dfs, unit
-                )
-            );
+            output.append("\n\n");
         }
 
-        return text.toString();
+        return output.toString();
     }
 
     // ==========================================
@@ -1540,77 +2160,76 @@ public class PerformanceDashboard extends JPanel {
     // ==========================================
 
     private String buildTrend(
-        TreeMap<Integer, double[]> data,
-        int bfsIndex,
-        int dfsIndex,
-        String unit,
-        String metric
+        TreeMap<Integer, double[]> data
     ) {
 
         if (data.size() < 2) {
-            return "At least two maze sizes are required to compare the "
-                + metric + " trend.";
+
+            return "At least two maze sizes are required "
+                + "to compare performance trends.";
         }
 
-        Map.Entry<Integer, double[]> first = data.firstEntry();
-        Map.Entry<Integer, double[]> last = data.lastEntry();
+        Map.Entry<Integer, double[]> first =
+            data.firstEntry();
 
-        StringBuilder text = new StringBuilder();
+        Map.Entry<Integer, double[]> last =
+            data.lastEntry();
 
-        text.append("Smallest maze: ")
+        StringBuilder output =
+            new StringBuilder();
+
+        output.append("Smallest maze: ")
             .append(first.getKey())
             .append("x")
             .append(first.getKey())
             .append("\n");
 
-        text.append("Largest maze: ")
+        output.append("Largest maze: ")
             .append(last.getKey())
             .append("x")
             .append(last.getKey())
             .append("\n\n");
 
-        appendMetricTrend(
-            text,
-            "BFS",
-            first.getValue()[bfsIndex],
-            last.getValue()[bfsIndex],
-            unit,
-            metric
-        );
+        int[] timeIndexes = {
+            BFS_TIME,
+            DFS_TIME,
+            ASTAR_TIME
+        };
 
-        appendMetricTrend(
-            text,
-            "DFS",
-            first.getValue()[dfsIndex],
-            last.getValue()[dfsIndex],
-            unit,
-            metric
-        );
+        for (int i = 0; i < 3; i++) {
 
-        text.append(
-            "\nThis interpretation compares the smallest and largest "
-            + "recorded maze sizes only. It describes the observed "
+            appendTrend(
+                output,
+                ALGORITHMS[i],
+                first.getValue()[timeIndexes[i]],
+                last.getValue()[timeIndexes[i]]
+            );
+        }
+
+        output.append(
+            "\nThis compares only the smallest and largest "
+            + "recorded maze sizes. It describes observed "
             + "measurements, not a guaranteed trend."
         );
 
-        return text.toString();
+        return output.toString();
     }
 
-    private void appendMetricTrend(
-        StringBuilder text,
+    private void appendTrend(
+        StringBuilder output,
         String algorithm,
         double first,
-        double last,
-        String unit,
-        String metric
+        double last
     ) {
 
-        text.append(algorithm).append(": ");
+        output.append(algorithm)
+            .append(": ");
 
         if (!Double.isFinite(first) ||
             !Double.isFinite(last)) {
 
-            text.append("Insufficient data.\n\n");
+            output.append("Insufficient data.\n\n");
+
             return;
         }
 
@@ -1624,16 +2243,15 @@ public class PerformanceDashboard extends JPanel {
             direction = "remained equal";
         }
 
-        text.append(metric)
-            .append(" ")
-            .append(direction)
+        output.append(direction)
             .append(" from ");
 
-        text.append(
+        output.append(
             String.format(
                 Locale.US,
-                "%.2f %s to %.2f %s.\n\n",
-                first, unit, last, unit
+                "%.4f ms to %.4f ms.\n\n",
+                first,
+                last
             )
         );
     }
@@ -1644,44 +2262,75 @@ public class PerformanceDashboard extends JPanel {
 
     private TreeMap<Integer, double[]> getGraphData() {
 
-        TreeMap<Integer, double[]> data = new TreeMap<>();
+        TreeMap<Integer, double[]> data =
+            new TreeMap<>();
 
         for (String[] row : results) {
 
             try {
 
-                int size = Integer.parseInt(row[0].trim());
+                int size = Integer.parseInt(
+                    row[0].trim()
+                );
 
-                int algorithm;
+                int algorithmIndex;
 
-                if (row[1].trim().equalsIgnoreCase("BFS")) {
-                    algorithm = 0;
+                String algorithm =
+                    row[1].trim();
+
+                if (algorithm.equalsIgnoreCase("BFS")) {
+
+                    algorithmIndex = 0;
+
                 } else if (
-                    row[1].trim().equalsIgnoreCase("DFS")
+                    algorithm.equalsIgnoreCase("DFS")
                 ) {
-                    algorithm = 1;
+
+                    algorithmIndex = 1;
+
+                } else if (
+                    algorithm.equalsIgnoreCase("A*")
+                ) {
+
+                    algorithmIndex = 2;
+
                 } else {
+
                     continue;
                 }
 
                 double[] values = data.computeIfAbsent(
                     size,
                     key -> new double[] {
-                        Double.NaN, Double.NaN,
-                        Double.NaN, Double.NaN,
-                        Double.NaN, Double.NaN
+                        Double.NaN,
+                        Double.NaN,
+                        Double.NaN,
+                        Double.NaN,
+                        Double.NaN,
+                        Double.NaN,
+                        Double.NaN,
+                        Double.NaN,
+                        Double.NaN
                     }
                 );
 
-                double time = parseValue(row, CSV_TIME);
-                double visited = parseValue(row, CSV_VISITED);
-                double memory = parseValue(row, CSV_MEMORY);
+                double time =
+                    parseValue(row, CSV_TIME);
 
-                // Each CSV row already represents the average
-                // of five benchmark runs.
-                values[algorithm] = time;
-                values[algorithm + 2] = memory;
-                values[algorithm + 4] = visited;
+                double visited =
+                    parseValue(row, CSV_VISITED);
+
+                double memory =
+                    parseValue(row, CSV_MEMORY);
+
+                // Execution time: indexes 0, 1, 2
+                values[algorithmIndex] = time;
+
+                // Memory: indexes 3, 4, 5
+                values[algorithmIndex + 3] = memory;
+
+                // Visited cells: indexes 6, 7, 8
+                values[algorithmIndex + 6] = visited;
 
             } catch (Exception ignored) {
             }
@@ -1690,7 +2339,10 @@ public class PerformanceDashboard extends JPanel {
         return data;
     }
 
-    private double parseValue(String[] row, int index) {
+    private double parseValue(
+        String[] row,
+        int index
+    ) {
 
         try {
 
@@ -1698,7 +2350,8 @@ public class PerformanceDashboard extends JPanel {
                 return Double.NaN;
             }
 
-            String value = row[index].trim();
+            String value =
+                row[index].trim();
 
             if (value.isEmpty() ||
                 value.equalsIgnoreCase("Unavailable")) {
@@ -1706,13 +2359,15 @@ public class PerformanceDashboard extends JPanel {
                 return Double.NaN;
             }
 
-            double number = Double.parseDouble(value);
+            double number =
+                Double.parseDouble(value);
 
             return Double.isFinite(number) && number >= 0
                 ? number
                 : Double.NaN;
 
         } catch (Exception e) {
+
             return Double.NaN;
         }
     }
@@ -1726,13 +2381,21 @@ public class PerformanceDashboard extends JPanel {
         JPanel panel = new JPanel();
 
         panel.setLayout(
-            new BoxLayout(panel, BoxLayout.Y_AXIS)
+            new BoxLayout(
+                panel,
+                BoxLayout.Y_AXIS
+            )
         );
 
         panel.setBackground(BACKGROUND);
 
         panel.setBorder(
-            BorderFactory.createEmptyBorder(15, 15, 15, 15)
+            BorderFactory.createEmptyBorder(
+                15,
+                15,
+                15,
+                15
+            )
         );
 
         return panel;
@@ -1740,25 +2403,40 @@ public class PerformanceDashboard extends JPanel {
 
     private JScrollPane wrapScroll(JPanel panel) {
 
-        JScrollPane scroll = new JScrollPane(panel);
+        JScrollPane scroll =
+            new JScrollPane(panel);
+
         scroll.setBorder(null);
 
-        scroll.getViewport().setBackground(BACKGROUND);
+        scroll.getViewport().setBackground(
+            BACKGROUND
+        );
 
-        scroll.getVerticalScrollBar().setUnitIncrement(18);
+        scroll.getVerticalScrollBar()
+            .setUnitIncrement(18);
 
         return scroll;
     }
 
-    private JLabel createSectionTitle(String title) {
+    private JLabel createSectionTitle(
+        String title
+    ) {
 
         JLabel label = new JLabel(title);
 
         label.setForeground(TEXT);
-        label.setFont(new Font("Arial", Font.BOLD, 19));
+
+        label.setFont(
+            new Font("Arial", Font.BOLD, 19)
+        );
 
         label.setBorder(
-            BorderFactory.createEmptyBorder(5, 5, 12, 5)
+            BorderFactory.createEmptyBorder(
+                5,
+                5,
+                12,
+                5
+            )
         );
 
         return label;
@@ -1770,7 +2448,10 @@ public class PerformanceDashboard extends JPanel {
         String description
     ) {
 
-        JPanel card = new JPanel(new BorderLayout(8, 8));
+        JPanel card = new JPanel(
+            new BorderLayout(8, 8)
+        );
+
         card.setBackground(CARD);
 
         card.setBorder(
@@ -1778,43 +2459,79 @@ public class PerformanceDashboard extends JPanel {
                 BorderFactory.createLineBorder(
                     new Color(57, 78, 63)
                 ),
-                BorderFactory.createEmptyBorder(12, 14, 12, 14)
+                BorderFactory.createEmptyBorder(
+                    12,
+                    14,
+                    12,
+                    14
+                )
             )
         );
 
         card.setMaximumSize(
-            new Dimension(Integer.MAX_VALUE, 500)
+            new Dimension(
+                Integer.MAX_VALUE,
+                500
+            )
         );
 
         JLabel title = new JLabel(heading);
+
         title.setForeground(LIGHT_GREEN);
-        title.setFont(new Font("Arial", Font.BOLD, 14));
 
-        JTextArea text = createTextArea(description);
+        title.setFont(
+            new Font("Arial", Font.BOLD, 14)
+        );
 
-        card.add(title, BorderLayout.NORTH);
-        card.add(text, BorderLayout.CENTER);
+        JTextArea text =
+            createTextArea(description);
 
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
+        card.add(
+            title,
+            BorderLayout.NORTH
+        );
+
+        card.add(
+            text,
+            BorderLayout.CENTER
+        );
+
+        card.setAlignmentX(
+            Component.LEFT_ALIGNMENT
+        );
 
         panel.add(card);
-        panel.add(Box.createVerticalStrut(12));
+
+        panel.add(
+            Box.createVerticalStrut(12)
+        );
     }
 
-    private JTextArea createTextArea(String content) {
+    private JTextArea createTextArea(
+        String content
+    ) {
 
-        JTextArea text = new JTextArea(content);
+        JTextArea text =
+            new JTextArea(content);
 
         text.setEditable(false);
         text.setLineWrap(true);
         text.setWrapStyleWord(true);
 
-        text.setFont(new Font("Arial", Font.PLAIN, 12));
+        text.setFont(
+            new Font("Arial", Font.PLAIN, 12)
+        );
+
         text.setForeground(TEXT);
         text.setBackground(CARD);
 
         text.setBorder(
-            BorderFactory.createEmptyBorder(5, 2, 5, 2)
+            BorderFactory.createEmptyBorder(
+                5,
+                2,
+                5,
+                2
+            )
         );
 
         return text;
@@ -1844,7 +2561,10 @@ public class PerformanceDashboard extends JPanel {
             this.grouped = grouped;
 
             setBackground(PANEL);
-            setPreferredSize(new Dimension(800, 520));
+
+            setPreferredSize(
+                new Dimension(800, 520)
+            );
         }
 
         @Override
@@ -1852,7 +2572,8 @@ public class PerformanceDashboard extends JPanel {
 
             super.paintComponent(g);
 
-            Graphics2D g2 = (Graphics2D) g.create();
+            Graphics2D g2 =
+                (Graphics2D) g.create();
 
             g2.setRenderingHint(
                 RenderingHints.KEY_ANTIALIASING,
@@ -1868,14 +2589,22 @@ public class PerformanceDashboard extends JPanel {
             int bottom = height - 105;
 
             if (right <= left || bottom <= top) {
+
                 g2.dispose();
+
                 return;
             }
 
-            g2.setColor(TEXT);
-            g2.setFont(new Font("Arial", Font.BOLD, 19));
+            // TITLE
 
-            FontMetrics fm = g2.getFontMetrics();
+            g2.setColor(TEXT);
+
+            g2.setFont(
+                new Font("Arial", Font.BOLD, 19)
+            );
+
+            FontMetrics fm =
+                g2.getFontMetrics();
 
             g2.drawString(
                 title,
@@ -1883,34 +2612,29 @@ public class PerformanceDashboard extends JPanel {
                 38
             );
 
-            // All charts now use the same graph data source.
-            TreeMap<Integer, double[]> values = getGraphData();
+            // GET GRAPH DATA
 
-            // Convert CSV column to the matching graph data index.
-            int bfsIndex;
-            int dfsIndex;
+            TreeMap<Integer, double[]> values =
+                getGraphData();
 
-            if (valueIndex == CSV_TIME) {
-                bfsIndex = BFS_TIME;
-                dfsIndex = DFS_TIME;
-            } else if (valueIndex == CSV_MEMORY) {
-                bfsIndex = BFS_MEMORY;
-                dfsIndex = DFS_MEMORY;
-            } else {
-                bfsIndex = BFS_VISITED;
-                dfsIndex = DFS_VISITED;
-            }
+            int[] indexes =
+                getIndexesForMetric();
+
+            // FIND MAXIMUM VALUE
 
             double max = 0;
 
-            for (double[] pair : values.values()) {
+            for (double[] row : values.values()) {
 
-                if (Double.isFinite(pair[bfsIndex])) {
-                    max = Math.max(max, pair[bfsIndex]);
-                }
+                for (int index : indexes) {
 
-                if (Double.isFinite(pair[dfsIndex])) {
-                    max = Math.max(max, pair[dfsIndex]);
+                    if (Double.isFinite(row[index])) {
+
+                        max = Math.max(
+                            max,
+                            row[index]
+                        );
+                    }
                 }
             }
 
@@ -1924,6 +2648,7 @@ public class PerformanceDashboard extends JPanel {
                 );
 
                 g2.dispose();
+
                 return;
             }
 
@@ -1931,17 +2656,30 @@ public class PerformanceDashboard extends JPanel {
 
             // GRID AND Y-AXIS LABELS
 
-            g2.setFont(new Font("Arial", Font.PLAIN, 11));
+            g2.setFont(
+                new Font("Arial", Font.PLAIN, 11)
+            );
 
             for (int i = 0; i <= 5; i++) {
 
                 int y = bottom -
-                    (int)((bottom - top) * i / 5.0);
+                    (int)(
+                        (bottom - top) * i / 5.0
+                    );
 
-                g2.setColor(new Color(57, 73, 63));
-                g2.drawLine(left, y, right, y);
+                g2.setColor(
+                    new Color(57, 73, 63)
+                );
 
-                double labelValue = max * i / 5.0;
+                g2.drawLine(
+                    left,
+                    y,
+                    right,
+                    y
+                );
+
+                double labelValue =
+                    max * i / 5.0;
 
                 g2.setColor(MUTED);
 
@@ -1951,17 +2689,36 @@ public class PerformanceDashboard extends JPanel {
                     labelValue
                 );
 
-                g2.drawString(label, 15, y + 4);
+                g2.drawString(
+                    label,
+                    15,
+                    y + 4
+                );
             }
 
             // AXES
 
             g2.setColor(MUTED);
 
-            g2.drawLine(left, top, left, bottom);
-            g2.drawLine(left, bottom, right, bottom);
+            g2.drawLine(
+                left,
+                top,
+                left,
+                bottom
+            );
 
-            g2.drawString(yLabel, 15, 65);
+            g2.drawLine(
+                left,
+                bottom,
+                right,
+                bottom
+            );
+
+            g2.drawString(
+                yLabel,
+                15,
+                65
+            );
 
             g2.drawString(
                 "Maze Size",
@@ -1970,46 +2727,67 @@ public class PerformanceDashboard extends JPanel {
             );
 
             int count = values.size();
+
             int position = 0;
 
-            int groupWidth = (right - left) / count;
+            int groupWidth =
+                (right - left) / count;
+
+            // ==========================================
+            // GROUPED BAR CHART
+            // ==========================================
 
             if (grouped) {
 
                 int barWidth = Math.max(
-                    8,
-                    Math.min(35, groupWidth / 4)
+                    5,
+                    Math.min(
+                        24,
+                        groupWidth / 5
+                    )
                 );
 
                 for (Map.Entry<Integer, double[]> entry :
                     values.entrySet()) {
 
-                    int center = left +
-                        groupWidth * position +
-                        groupWidth / 2;
+                    int center = left
+                        + groupWidth * position
+                        + groupWidth / 2;
 
-                    double[] pair = entry.getValue();
+                    double[] row =
+                        entry.getValue();
 
                     drawBar(
                         g2,
-                        center - barWidth,
+                        center - barWidth - 2,
                         bottom,
                         top,
-                        pair[bfsIndex],
+                        row[indexes[0]],
                         max,
-                        barWidth - 2,
+                        barWidth,
                         BFS_COLOR
                     );
 
                     drawBar(
                         g2,
-                        center + 2,
+                        center,
                         bottom,
                         top,
-                        pair[dfsIndex],
+                        row[indexes[1]],
                         max,
-                        barWidth - 2,
+                        barWidth,
                         DFS_COLOR
+                    );
+
+                    drawBar(
+                        g2,
+                        center + barWidth + 2,
+                        bottom,
+                        top,
+                        row[indexes[2]],
+                        max,
+                        barWidth,
+                        ASTAR_COLOR
                     );
 
                     drawMazeLabel(
@@ -2022,12 +2800,18 @@ public class PerformanceDashboard extends JPanel {
                     position++;
                 }
 
-            } else {
+            }
+
+            // ==========================================
+            // LINE CHART
+            // ==========================================
+
+            else {
 
                 drawLine(
                     g2,
                     values,
-                    bfsIndex,
+                    indexes[0],
                     BFS_COLOR,
                     left,
                     right,
@@ -2039,8 +2823,20 @@ public class PerformanceDashboard extends JPanel {
                 drawLine(
                     g2,
                     values,
-                    dfsIndex,
+                    indexes[1],
                     DFS_COLOR,
+                    left,
+                    right,
+                    top,
+                    bottom,
+                    max
+                );
+
+                drawLine(
+                    g2,
+                    values,
+                    indexes[2],
+                    ASTAR_COLOR,
                     left,
                     right,
                     top,
@@ -2057,16 +2853,60 @@ public class PerformanceDashboard extends JPanel {
                             (double)(count - 1)
                         );
 
-                    drawMazeLabel(g2, size, x, bottom);
+                    drawMazeLabel(
+                        g2,
+                        size,
+                        x,
+                        bottom
+                    );
 
                     position++;
                 }
             }
 
-            drawLegend(g2, width, height);
+            drawLegend(
+                g2,
+                width,
+                height
+            );
 
             g2.dispose();
         }
+
+        // ==========================================
+        // GET INDEXES FOR SELECTED CHART
+        // ==========================================
+
+        private int[] getIndexesForMetric() {
+
+            if (valueIndex == CSV_TIME) {
+
+                return new int[] {
+                    BFS_TIME,
+                    DFS_TIME,
+                    ASTAR_TIME
+                };
+            }
+
+            if (valueIndex == CSV_MEMORY) {
+
+                return new int[] {
+                    BFS_MEMORY,
+                    DFS_MEMORY,
+                    ASTAR_MEMORY
+                };
+            }
+
+            return new int[] {
+                BFS_VISITED,
+                DFS_VISITED,
+                ASTAR_VISITED
+            };
+        }
+
+        // ==========================================
+        // DRAW BAR
+        // ==========================================
 
         private void drawBar(
             Graphics2D g2,
@@ -2087,7 +2927,10 @@ public class PerformanceDashboard extends JPanel {
                 (value / max) * (bottom - top)
             );
 
-            barHeight = Math.max(0, barHeight);
+            barHeight = Math.max(
+                0,
+                barHeight
+            );
 
             g2.setColor(color);
 
@@ -2100,6 +2943,10 @@ public class PerformanceDashboard extends JPanel {
                 5
             );
         }
+
+        // ==========================================
+        // DRAW LINE
+        // ==========================================
 
         private void drawLine(
             Graphics2D g2,
@@ -2114,17 +2961,22 @@ public class PerformanceDashboard extends JPanel {
         ) {
 
             int count = values.size();
+
             int position = 0;
 
             int previousX = -1;
             int previousY = -1;
 
             g2.setColor(color);
-            g2.setStroke(new BasicStroke(3f));
 
-            for (double[] pair : values.values()) {
+            g2.setStroke(
+                new BasicStroke(3f)
+            );
 
-                double value = pair[algorithmIndex];
+            for (double[] row : values.values()) {
+
+                double value =
+                    row[algorithmIndex];
 
                 int x = count == 1
                     ? (left + right) / 2
@@ -2136,7 +2988,9 @@ public class PerformanceDashboard extends JPanel {
                 position++;
 
                 if (!Double.isFinite(value)) {
+
                     previousX = -1;
+
                     continue;
                 }
 
@@ -2145,15 +2999,30 @@ public class PerformanceDashboard extends JPanel {
                 );
 
                 if (previousX != -1) {
-                    g2.drawLine(previousX, previousY, x, y);
+
+                    g2.drawLine(
+                        previousX,
+                        previousY,
+                        x,
+                        y
+                    );
                 }
 
-                g2.fillOval(x - 5, y - 5, 10, 10);
+                g2.fillOval(
+                    x - 5,
+                    y - 5,
+                    10,
+                    10
+                );
 
                 previousX = x;
                 previousY = y;
             }
         }
+
+        // ==========================================
+        // DRAW MAZE LABEL
+        // ==========================================
 
         private void drawMazeLabel(
             Graphics2D g2,
@@ -2164,9 +3033,11 @@ public class PerformanceDashboard extends JPanel {
 
             g2.setColor(MUTED);
 
-            String label = size + "x" + size;
+            String label =
+                size + "x" + size;
 
-            FontMetrics fm = g2.getFontMetrics();
+            FontMetrics fm =
+                g2.getFontMetrics();
 
             g2.drawString(
                 label,
@@ -2174,6 +3045,10 @@ public class PerformanceDashboard extends JPanel {
                 bottom + 23
             );
         }
+
+        // ==========================================
+        // DRAW THREE-ALGORITHM LEGEND
+        // ==========================================
 
         private void drawLegend(
             Graphics2D g2,
@@ -2183,38 +3058,68 @@ public class PerformanceDashboard extends JPanel {
 
             int y = height - 55;
 
-            g2.setFont(new Font("Arial", Font.BOLD, 12));
-
-            g2.setColor(BFS_COLOR);
-
-            g2.fillRoundRect(
-                width / 2 - 65,
-                y - 9,
-                13,
-                13,
-                4,
-                4
+            g2.setFont(
+                new Font("Arial", Font.BOLD, 12)
             );
 
-            g2.setColor(TEXT);
+            int startX = width / 2 - 110;
 
-            g2.drawString("BFS", width / 2 - 45, y + 2);
-
-            g2.setColor(DFS_COLOR);
-
-            g2.fillRoundRect(
-                width / 2 + 5,
-                y - 9,
-                13,
-                13,
-                4,
-                4
+            drawLegendItem(
+                g2,
+                "BFS",
+                BFS_COLOR,
+                startX,
+                y
             );
 
-            g2.setColor(TEXT);
+            drawLegendItem(
+                g2,
+                "DFS",
+                DFS_COLOR,
+                startX + 85,
+                y
+            );
 
-            g2.drawString("DFS", width / 2 + 25, y + 2);
+            drawLegendItem(
+                g2,
+                "A*",
+                ASTAR_COLOR,
+                startX + 170,
+                y
+            );
         }
+
+        private void drawLegendItem(
+            Graphics2D g2,
+            String label,
+            Color color,
+            int x,
+            int y
+        ) {
+
+            g2.setColor(color);
+
+            g2.fillRoundRect(
+                x,
+                y - 9,
+                13,
+                13,
+                4,
+                4
+            );
+
+            g2.setColor(TEXT);
+
+            g2.drawString(
+                label,
+                x + 19,
+                y + 2
+            );
+        }
+
+        // ==========================================
+        // DRAW EMPTY CHART MESSAGE
+        // ==========================================
 
         private void drawCenteredMessage(
             Graphics2D g2,
@@ -2224,9 +3129,13 @@ public class PerformanceDashboard extends JPanel {
         ) {
 
             g2.setColor(MUTED);
-            g2.setFont(new Font("Arial", Font.PLAIN, 15));
 
-            FontMetrics fm = g2.getFontMetrics();
+            g2.setFont(
+                new Font("Arial", Font.PLAIN, 15)
+            );
+
+            FontMetrics fm =
+                g2.getFontMetrics();
 
             g2.drawString(
                 message,

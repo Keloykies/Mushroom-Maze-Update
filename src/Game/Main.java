@@ -39,6 +39,7 @@ public class Main {
             // =====================================
 
             MainMenu menu = new MainMenu(
+
                 // PLAY
                 () -> cardLayout.show(screens, "MODE"),
 
@@ -81,9 +82,18 @@ public class Main {
 
             MazeSizeSelection sizeSelection =
                 new MazeSizeSelection(
-                    () -> cardLayout.show(screens, "MODE"),
+
+                    () -> {
+
+                        if (selectedMode[0].equals("Manual Play")) {
+                            cardLayout.show(screens, "MODE");
+                        } else {
+                            cardLayout.show(screens, "ALGORITHM");
+                        }
+                    },
 
                     size -> {
+
                         gamePanel.startGame(
                             selectedMode[0],
                             size
@@ -94,17 +104,49 @@ public class Main {
                 );
 
             // =====================================
+            // ALGORITHM SELECTION
+            // =====================================
+
+            AlgorithmSelection algorithmSelection =
+                new AlgorithmSelection(
+
+                    // BACK TO MODE SELECTION
+                    () -> cardLayout.show(screens, "MODE"),
+
+                    algorithm -> {
+
+                        selectedMode[0] = algorithm;
+
+                        sizeSelection.setSelectedMode(algorithm);
+
+                        cardLayout.show(screens, "SIZE");
+                    }
+                );
+
+            // =====================================
             // GAME MODE SELECTION
             // =====================================
 
             ModeSelection modeSelection =
                 new ModeSelection(
+
+                    // BACK TO MAIN MENU
                     () -> cardLayout.show(screens, "MENU"),
 
                     mode -> {
-                        selectedMode[0] = mode;
-                        sizeSelection.setSelectedMode(mode);
-                        cardLayout.show(screens, "SIZE");
+
+                        if (mode.equals("Manual Play")) {
+
+                            selectedMode[0] = "Manual Play";
+
+                            sizeSelection.setSelectedMode("Manual Play");
+
+                            cardLayout.show(screens, "SIZE");
+
+                        } else if (mode.equals("Algorithm Solver")) {
+
+                            cardLayout.show(screens, "ALGORITHM");
+                        }
                     }
                 );
 
@@ -115,7 +157,10 @@ public class Main {
             screens.add(menu, "MENU");
             screens.add(instructions, "INSTRUCTIONS");
             screens.add(performance, "PERFORMANCE");
+
             screens.add(modeSelection, "MODE");
+            screens.add(algorithmSelection, "ALGORITHM");
+
             screens.add(sizeSelection, "SIZE");
             screens.add(gamePanel, "GAME");
 
@@ -152,6 +197,7 @@ public class Main {
 
                 @Override
                 public void windowClosing(WindowEvent e) {
+
                     showExitConfirmation();
                 }
             });
@@ -185,6 +231,7 @@ public class Main {
 
                     @Override
                     public void componentAdded(ContainerEvent e) {
+
                         installClickSoundOnComponent(e.getChild());
                     }
                 });
@@ -199,6 +246,7 @@ public class Main {
         // Check existing components.
 
         for (Component component : container.getComponents()) {
+
             installClickSoundOnComponent(component);
         }
     }
@@ -226,6 +274,7 @@ public class Main {
         // Check buttons inside nested panels.
 
         if (component instanceof Container) {
+
             installClickSounds((Container) component);
         }
     }

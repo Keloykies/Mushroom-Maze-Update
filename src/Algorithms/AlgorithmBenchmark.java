@@ -1,4 +1,3 @@
-
 package Algorithms;
 
 import java.lang.management.ManagementFactory;
@@ -44,7 +43,6 @@ public class AlgorithmBenchmark {
                 if (threadBean.isThreadAllocatedMemorySupported()) {
 
                     if (!threadBean.isThreadAllocatedMemoryEnabled()) {
-
                         threadBean.setThreadAllocatedMemoryEnabled(true);
                     }
 
@@ -80,7 +78,7 @@ public class AlgorithmBenchmark {
         );
 
         System.out.println(
-            "             BFS AND DFS PERFORMANCE TEST"
+            "          BFS, DFS AND A* PERFORMANCE TEST"
         );
 
         System.out.println(
@@ -121,34 +119,33 @@ public class AlgorithmBenchmark {
     }
 
     // ==========================================
-    // BENCHMARK BFS AND DFS USING THE SAME MAZES
+    // BENCHMARK ALL THREE USING THE SAME MAZES
     // ==========================================
 
     private static void benchmarkMazeSize(int size) {
 
         long totalBFSTime = 0;
         long totalDFSTime = 0;
+        long totalAStarTime = 0;
 
         long totalBFSMemory = 0;
         long totalDFSMemory = 0;
+        long totalAStarMemory = 0;
 
         int totalBFSVisited = 0;
         int totalDFSVisited = 0;
+        int totalAStarVisited = 0;
 
-        boolean bfsMemoryAvailable =
-            MEMORY_BEAN != null;
-
-        boolean dfsMemoryAvailable =
-            MEMORY_BEAN != null;
+        boolean bfsMemoryAvailable = MEMORY_BEAN != null;
+        boolean dfsMemoryAvailable = MEMORY_BEAN != null;
+        boolean aStarMemoryAvailable = MEMORY_BEAN != null;
 
         long threadId =
             Thread.currentThread().getId();
 
         for (int i = 0; i < RUNS; i++) {
 
-            // Generate one maze for this trial.
-            // Both algorithms use the exact same maze.
-
+            // All three algorithms use the same generated maze
             Maze maze =
                 MazeGenerator.generateMaze(size, size);
 
@@ -158,10 +155,9 @@ public class AlgorithmBenchmark {
 
             if (i == 0) {
 
-                // Disable snapshots during warm-up
                 BFS.findPath(maze, false);
-
                 DFS.findPath(maze, false);
+                AStar.findPath(maze, false);
             }
 
             System.out.println(
@@ -169,81 +165,114 @@ public class AlgorithmBenchmark {
             );
 
             // ==========================================
-            // ALTERNATE EXECUTION ORDER
+            // ROTATE EXECUTION ORDER
             // ==========================================
 
-            if (i % 2 == 0) {
+            // Order 1: BFS -> DFS -> A*
+            if (i % 3 == 0) {
 
-                // BFS first
-                long[] bfsResult =
-                    measureBFS(maze, threadId);
+                long[] bfs = measureBFS(maze, threadId);
+                totalBFSTime += bfs[0];
+                totalBFSVisited += (int) bfs[1];
 
-                totalBFSTime += bfsResult[0];
-                totalBFSVisited += (int) bfsResult[1];
-
-                if (bfsResult[2] >= 0) {
-
-                    totalBFSMemory += bfsResult[2];
-
+                if (bfs[2] >= 0) {
+                    totalBFSMemory += bfs[2];
                 } else {
-
                     bfsMemoryAvailable = false;
                 }
 
-                // DFS second
-                long[] dfsResult =
-                    measureDFS(maze, threadId);
+                long[] dfs = measureDFS(maze, threadId);
+                totalDFSTime += dfs[0];
+                totalDFSVisited += (int) dfs[1];
 
-                totalDFSTime += dfsResult[0];
-                totalDFSVisited += (int) dfsResult[1];
-
-                if (dfsResult[2] >= 0) {
-
-                    totalDFSMemory += dfsResult[2];
-
+                if (dfs[2] >= 0) {
+                    totalDFSMemory += dfs[2];
                 } else {
-
                     dfsMemoryAvailable = false;
                 }
 
-            } else {
+                long[] aStar = measureAStar(maze, threadId);
+                totalAStarTime += aStar[0];
+                totalAStarVisited += (int) aStar[1];
 
-                // DFS first
-                long[] dfsResult =
-                    measureDFS(maze, threadId);
-
-                totalDFSTime += dfsResult[0];
-                totalDFSVisited += (int) dfsResult[1];
-
-                if (dfsResult[2] >= 0) {
-
-                    totalDFSMemory += dfsResult[2];
-
+                if (aStar[2] >= 0) {
+                    totalAStarMemory += aStar[2];
                 } else {
+                    aStarMemoryAvailable = false;
+                }
+            }
 
+            // Order 2: DFS -> A* -> BFS
+            else if (i % 3 == 1) {
+
+                long[] dfs = measureDFS(maze, threadId);
+                totalDFSTime += dfs[0];
+                totalDFSVisited += (int) dfs[1];
+
+                if (dfs[2] >= 0) {
+                    totalDFSMemory += dfs[2];
+                } else {
                     dfsMemoryAvailable = false;
                 }
 
-                // BFS second
-                long[] bfsResult =
-                    measureBFS(maze, threadId);
+                long[] aStar = measureAStar(maze, threadId);
+                totalAStarTime += aStar[0];
+                totalAStarVisited += (int) aStar[1];
 
-                totalBFSTime += bfsResult[0];
-                totalBFSVisited += (int) bfsResult[1];
-
-                if (bfsResult[2] >= 0) {
-
-                    totalBFSMemory += bfsResult[2];
-
+                if (aStar[2] >= 0) {
+                    totalAStarMemory += aStar[2];
                 } else {
+                    aStarMemoryAvailable = false;
+                }
 
+                long[] bfs = measureBFS(maze, threadId);
+                totalBFSTime += bfs[0];
+                totalBFSVisited += (int) bfs[1];
+
+                if (bfs[2] >= 0) {
+                    totalBFSMemory += bfs[2];
+                } else {
                     bfsMemoryAvailable = false;
+                }
+            }
+
+            // Order 3: A* -> BFS -> DFS
+            else {
+
+                long[] aStar = measureAStar(maze, threadId);
+                totalAStarTime += aStar[0];
+                totalAStarVisited += (int) aStar[1];
+
+                if (aStar[2] >= 0) {
+                    totalAStarMemory += aStar[2];
+                } else {
+                    aStarMemoryAvailable = false;
+                }
+
+                long[] bfs = measureBFS(maze, threadId);
+                totalBFSTime += bfs[0];
+                totalBFSVisited += (int) bfs[1];
+
+                if (bfs[2] >= 0) {
+                    totalBFSMemory += bfs[2];
+                } else {
+                    bfsMemoryAvailable = false;
+                }
+
+                long[] dfs = measureDFS(maze, threadId);
+                totalDFSTime += dfs[0];
+                totalDFSVisited += (int) dfs[1];
+
+                if (dfs[2] >= 0) {
+                    totalDFSMemory += dfs[2];
+                } else {
+                    dfsMemoryAvailable = false;
                 }
             }
         }
 
         // ==========================================
-        // SAVE AVERAGE BFS RESULTS
+        // SAVE AVERAGE RESULTS
         // ==========================================
 
         printResults(
@@ -255,10 +284,6 @@ public class AlgorithmBenchmark {
             bfsMemoryAvailable
         );
 
-        // ==========================================
-        // SAVE AVERAGE DFS RESULTS
-        // ==========================================
-
         printResults(
             size,
             "DFS",
@@ -266,6 +291,15 @@ public class AlgorithmBenchmark {
             totalDFSVisited,
             totalDFSMemory,
             dfsMemoryAvailable
+        );
+
+        printResults(
+            size,
+            "A*",
+            totalAStarTime,
+            totalAStarVisited,
+            totalAStarMemory,
+            aStarMemoryAvailable
         );
     }
 
@@ -278,28 +312,21 @@ public class AlgorithmBenchmark {
         long threadId
     ) {
 
-        long memoryBefore =
-            getAllocatedMemory(threadId);
+        long memoryBefore = getAllocatedMemory(threadId);
 
         long startTime = System.nanoTime();
 
-        // Disable queue snapshots during benchmarking
         BFS.SearchResult result =
             BFS.findPath(maze, false);
 
         long endTime = System.nanoTime();
 
-        long memoryAfter =
-            getAllocatedMemory(threadId);
+        long memoryAfter = getAllocatedMemory(threadId);
 
-        long allocatedMemory = -1;
-
-        if (memoryBefore >= 0 &&
-            memoryAfter >= memoryBefore) {
-
-            allocatedMemory =
-                memoryAfter - memoryBefore;
-        }
+        long allocatedMemory = calculateAllocatedMemory(
+            memoryBefore,
+            memoryAfter
+        );
 
         return new long[] {
             endTime - startTime,
@@ -317,34 +344,75 @@ public class AlgorithmBenchmark {
         long threadId
     ) {
 
-        long memoryBefore =
-            getAllocatedMemory(threadId);
+        long memoryBefore = getAllocatedMemory(threadId);
 
         long startTime = System.nanoTime();
 
-        // Disable stack snapshots during benchmarking
         DFS.SearchResult result =
             DFS.findPath(maze, false);
 
         long endTime = System.nanoTime();
 
-        long memoryAfter =
-            getAllocatedMemory(threadId);
+        long memoryAfter = getAllocatedMemory(threadId);
 
-        long allocatedMemory = -1;
-
-        if (memoryBefore >= 0 &&
-            memoryAfter >= memoryBefore) {
-
-            allocatedMemory =
-                memoryAfter - memoryBefore;
-        }
+        long allocatedMemory = calculateAllocatedMemory(
+            memoryBefore,
+            memoryAfter
+        );
 
         return new long[] {
             endTime - startTime,
             result.getVisitedOrder().size(),
             allocatedMemory
         };
+    }
+
+    // ==========================================
+    // MEASURE A*
+    // ==========================================
+
+    private static long[] measureAStar(
+        Maze maze,
+        long threadId
+    ) {
+
+        long memoryBefore = getAllocatedMemory(threadId);
+
+        long startTime = System.nanoTime();
+
+        AStar.SearchResult result =
+            AStar.findPath(maze, false);
+
+        long endTime = System.nanoTime();
+
+        long memoryAfter = getAllocatedMemory(threadId);
+
+        long allocatedMemory = calculateAllocatedMemory(
+            memoryBefore,
+            memoryAfter
+        );
+
+        return new long[] {
+            endTime - startTime,
+            result.getVisitedOrder().size(),
+            allocatedMemory
+        };
+    }
+
+    // ==========================================
+    // CALCULATE ALLOCATED MEMORY
+    // ==========================================
+
+    private static long calculateAllocatedMemory(
+        long before,
+        long after
+    ) {
+
+        if (before < 0 || after < before) {
+            return -1;
+        }
+
+        return after - before;
     }
 
     // ==========================================
@@ -356,7 +424,6 @@ public class AlgorithmBenchmark {
     ) {
 
         if (MEMORY_BEAN == null) {
-
             return -1;
         }
 
@@ -410,7 +477,6 @@ public class AlgorithmBenchmark {
             memoryResult
         );
 
-        // Add results to CSV
         csvData.append(String.format(
             Locale.US,
             "%d,%s,%.4f,%.2f,%s%n",

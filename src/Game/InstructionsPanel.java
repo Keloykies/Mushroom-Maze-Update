@@ -66,9 +66,10 @@ public class InstructionsPanel extends JPanel {
         // INSTRUCTIONS CONTENT
         // =====================================
 
-        JPanel content = new JPanel(new GridLayout(2, 2, 18, 18));
+        JPanel content = new JPanel(new GridLayout(2, 3, 18, 18));
         content.setOpaque(false);
 
+        // 01 OBJECTIVE
         content.add(createCard(
                 "01  OBJECTIVE",
                 "Navigate through the maze and find the exit.\n\n" +
@@ -76,6 +77,7 @@ public class InstructionsPanel extends JPanel {
                 "the starting point to the destination."
         ));
 
+        // 02 MOVEMENT CONTROLS
         content.add(createCard(
                 "02  MOVEMENT CONTROLS",
                 "W or UP ARROW       - Move Up\n\n" +
@@ -84,6 +86,7 @@ public class InstructionsPanel extends JPanel {
                 "D or RIGHT ARROW - Move Right"
         ));
 
+        // 03 BFS SOLVER
         content.add(createCard(
                 "03  BFS SOLVER",
                 "Breadth-First Search explores the maze level " +
@@ -92,11 +95,30 @@ public class InstructionsPanel extends JPanel {
                 "in an unweighted maze."
         ));
 
+        // 04 DFS SOLVER
         content.add(createCard(
                 "04  DFS SOLVER",
                 "Depth-First Search explores one direction " +
                 "as far as possible before backtracking.\n\n" +
                 "It uses a STACK to keep track of its exploration."
+        ));
+
+        // 05 A* SOLVER
+        content.add(createCard(
+                "05  A* SOLVER",
+                "A* Search finds a path by considering the " +
+                "distance already traveled and the estimated " +
+                "distance to the goal.\n\n" +
+                "It uses a PRIORITY QUEUE to explore the most " +
+                "promising path first."
+        ));
+        
+     // 06 ENJOY THE GAME
+        content.add(createCard(
+                "06  ENJOY THE GAME!",
+                "Put your skills to the test, explore every maze, " +
+                "and discover the power of algorithms.\n\n" +
+                "Have fun, think smart, and happy solving!"
         ));
 
         add(content, BorderLayout.CENTER);
@@ -114,6 +136,7 @@ public class InstructionsPanel extends JPanel {
         backButton.setForeground(CREAM);
         backButton.setBackground(BUTTON_GREEN);
         backButton.setFocusPainted(false);
+
         backButton.setBorder(
                 BorderFactory.createCompoundBorder(
                         BorderFactory.createLineBorder(GOLD, 2),
@@ -133,6 +156,10 @@ public class InstructionsPanel extends JPanel {
 
         add(footer, BorderLayout.SOUTH);
     }
+
+    // =====================================
+    // INSTRUCTION CARD
+    // =====================================
 
     private JPanel createCard(String heading, String description) {
 
